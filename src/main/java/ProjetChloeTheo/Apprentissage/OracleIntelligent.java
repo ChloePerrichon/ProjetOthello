@@ -2,14 +2,17 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package ProjetChloeTheo.Apprentissage;
+
 
 /**
  *
  * @author cperrichon01
  */
 
-import static ProjetChloeTheo.Apprentissage.MAIN.creationPartie;
+package ProjetChloeTheo.Apprentissage;
+
+import ProjetChloeTheo.configuration_jeu_othello.Damier;
+import ProjetChloeTheo.utils.OthelloConverter;
 import java.io.*;
 import java.util.*;
 
@@ -106,9 +109,9 @@ public class OracleIntelligent implements Oracle {
     // Fonction pour choisir le meilleur coup à jouer
     public static int[] chooseBestMove(int[][] possibleMoves, List<String> filePaths) {
         double maxProbability = -1.0;  //valeur initiale qui sera incrémentée si meilleur proba trouver jusqu'à être maximale
-        int[] bestMove = null;          //inital si aucun meilleur coup trouvé
+        int[] bestMove = null;          //initial si aucun meilleur coup trouvé
 
-        for (int[] move : possibleMoves) { // Pour chaque coup possible
+        for (int[] move : possibleMoves) { // Pour chaque coup possible, affiché sur une ligne du tableau possibleMoves
             double probability = getProbabilityInAllFilesForCurrentSituation(move, filePaths);
             if (probability > maxProbability) {
                 maxProbability = probability;
@@ -138,14 +141,41 @@ public class OracleIntelligent implements Oracle {
         }
         */
         
-        int[] currentBoard = new int[64];
-        Arrays.fill(currentBoard, 0); // Par exemple, toutes les cases vides
+        //int[] currentBoard = new int[64];
+        //Arrays.fill(currentBoard, 0); // Par exemple, toutes les cases vides
 
+        //Initialisation du jeu avec situation initiale, et damier initial
+        JeuOthello jeu = new JeuOthello();
+        Damier board = new Damier();
+        SituationOthello situation = new SituationOthello(board);
+        
+        var joueurs = List.of(Joueur.NOIR, Joueur.BLANC);
+        int numJoueur = 0;// 0 pour NOIR, 1 pour BLANC
+        Joueur curJoueur = joueurs.get(numJoueur);
+                
+        List<CoupOthello> CoupsPossibles = jeu.coupsJouables(situation, curJoueur);
+        
+        for (CoupOthello coup : CoupsPossibles) {
+            System.out.println(coup.toString());
+        }
+        
+        //Convert list en tableau de int deux dimensions
+        //int[][] possibleMoves = ListToArray.listToArray(CoupsPossibles);
+        
+        int[][] possibleMoves = OthelloConverter.convertirCoups(CoupsPossibles);
+        
+        for (int[] move : possibleMoves) {
+            System.out.println("possibleMoves est : ");
+            System.out.println(Arrays.toString(move));
+        }
+        
+        /*
         // Génération des coups possibles (par exemple)
         int[][] possibleMoves = {
             currentBoard.clone(), // Exemple : Aucune modification
             currentBoard.clone() // Ajouter d'autres coups possibles ici
         };
+        */
 
         // Trouver et jouer le meilleur coup
         int[] bestMove = chooseBestMove(possibleMoves, filePaths);
