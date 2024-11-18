@@ -43,12 +43,12 @@ public class SituationOthello {
             for (int col = 0 ; col < 8 ; col ++) {
                 Case cur = this.damierReel.getVal(lig, col);
                 int val;
-                if(cur == Case.VIDE) {
+                if(cur == Case.VIDE) { //si la case est vide c'est 0
                     val = 0;
-                } else if (cur == Case.NOIR) {
+                } else if (cur == Case.NOIR) { //si la case est noir c'est 1
                     val = 1;
                 } else {
-                    val = -1;
+                    val = -1; //si la case est blanche c'est -1
                 }
                 res.append(val);
                 if (lig != 7 || col != 7) {

@@ -178,7 +178,7 @@ public class JeuOthello {
                         }
                         coupChoisi = possibles.get(imin);
                     } else {
-                        // curCC == ChoixCoup.ORACLE_PONDERE
+                        //curCC = ChoixCoup.ORACLE_PONDERE;
                         coupChoisi = TiragesAlea2.choixAleaPondere(possibles, evals, rand);
                     }
                 }

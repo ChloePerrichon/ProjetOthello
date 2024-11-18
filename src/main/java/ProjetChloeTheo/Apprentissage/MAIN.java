@@ -33,7 +33,7 @@ public class MAIN {
         curWriter.append("\n");
     }
 
-    public static void generateCSVOfSituations(
+    public static void generateCSVOfSituations(         //méthode qui crée les lignes du CSV une par une
             Writer outJ1, Writer outJ2,
             JeuOthello jeu, Oracle j1, Oracle j2,
             int nbrParties,
@@ -61,7 +61,7 @@ public class MAIN {
             }
             int totCoups = resj.getCoupsJoues().size();
             int numCoup = 0;
-            generateUneLigneCSVOfSituations(curOut, curSit, curRes, numCoup, totCoups, includeRes, includeNumCoup, includeTotCoup);
+            generateUneLigneCSVOfSituations(curOut, curSit, curRes, numCoup, totCoups, includeRes, includeNumCoup, includeTotCoup);  //générer la ligne initiale de la situation init
             Joueur curJoueur = Joueur.NOIR;
             for (CoupOthello curCoup : resj.getCoupsJoues()) {
                 curSit = jeu.updateSituation(curSit, curJoueur, curCoup);
@@ -72,7 +72,7 @@ public class MAIN {
                 }
                 curRes = 1 - curRes;
                 numCoup++;
-                generateUneLigneCSVOfSituations(curOut, curSit, curRes, numCoup, totCoups, includeRes, includeNumCoup, includeTotCoup);
+                generateUneLigneCSVOfSituations(curOut, curSit, curRes, numCoup, totCoups, includeRes, includeNumCoup, includeTotCoup); //générer nvelle ligne à chaque coup
                 curJoueur = curJoueur.adversaire();
             }
         }
@@ -80,7 +80,7 @@ public class MAIN {
         System.out.println("les blancs ont gagne "+Quigagne[1]+" fois");
     }
 
-    public static void generateCSVOfSituations(
+    public static void creationPartie(
             File outJ1, File outJ2,
             JeuOthello jeu, Oracle j1, Oracle j2,
             int nbrParties,
@@ -94,7 +94,7 @@ public class MAIN {
     public static void testAvecOthello(int nbr) {
         try {
             File dir = new File("C:\\tmp");
-            generateCSVOfSituations(new File(dir, "noirs" + nbr +".csv"), new File(dir, "blancs"+nbr+".csv"),
+            creationPartie(new File(dir, "noirs" + nbr +".csv"), new File(dir, "blancs"+nbr+".csv"),
                     new JeuOthello(), new OracleStupide(Joueur.NOIR), new OracleStupide(Joueur.BLANC),nbr, true, true, true,new Random());
         } catch (IOException ex){
             throw new Error(ex);
