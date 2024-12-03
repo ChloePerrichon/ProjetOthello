@@ -113,6 +113,8 @@ public class Version1NeuronalNetwork {
 
         return dataset;
     }
+    
+    
 
     public static void main(String[] args) {
         try {
@@ -160,24 +162,48 @@ public class Version1NeuronalNetwork {
             model.setListeners(new ScoreIterationListener(10));
 
             System.out.println("Training model...");
-            for (int i = 0; i < 10; i++) { // numEpochs = 10
+            for (int i = 0; i < 1; i++) { // numEpochs = 10
                 model.fit(trainIterator);
                 System.out.println("Completed epoch " + (i + 1));
             }
 
-            System.out.println("Evaluating model...");
-            RegressionEvaluation eval = new RegressionEvaluation();
-            while (testIterator.hasNext()) {
-                DataSet t = testIterator.next();
-                INDArray features = t.getFeatures();
-                INDArray labels = t.getLabels();
-                INDArray predicted = model.output(features, false);
-                eval.eval(labels, predicted);
-            }
-            System.out.println(eval.stats());
-
+            System.out.println("saving the model ...");
             model.save(new File("othello-mlp-model.zip"));
             System.out.println("Model training complete.");
+
+            System.out.println("Evaluating model...");
+            RegressionEvaluation eval = new RegressionEvaluation();
+           // Ajout d'un contrôle pour vérifier que l'itérateur contient des données valides
+            while (testIterator.hasNext()) {
+                DataSet t = testIterator.next();
+                if (t.getFeatures().isEmpty() || t.getLabels().isEmpty()) {
+                    System.out.println("Skipping empty DataSet.");
+                    continue;  // Sauter si le DataSet est vide
+                }
+
+                INDArray features = t.getFeatures();
+                INDArray labels = t.getLabels();
+
+                // Vérification des dimensions des features et labels
+                if (features.rank() != 2 || labels.rank() != 2) {
+                    System.out.println("Skipping DataSet with invalid dimensions.");
+                    continue;  // Sauter si les dimensions sont invalides
+                }
+
+                INDArray predicted = model.output(features, false);
+
+                // Vérification de la validité des prédictions
+                if (predicted.isEmpty()) {
+                    System.out.println("Skipping empty prediction.");
+                    continue;  // Sauter si la prédiction est vide
+                }
+
+                // Effectuer l'évaluation si tout est valide
+                eval.eval(labels, predicted);
+        }
+
+        System.out.println(eval.stats());
+            
         } catch (IOException e) {
             e.printStackTrace();
         } catch (IllegalArgumentException e) {
