@@ -102,7 +102,7 @@ public class MAIN {
     }
     
     public static void main(String[] args){
-        testAvecOthello(8000);
+        testAvecOthello(9000);
     }
 
 }

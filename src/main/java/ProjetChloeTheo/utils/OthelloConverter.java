@@ -11,6 +11,10 @@ package ProjetChloeTheo.utils;
 import ProjetChloeTheo.Apprentissage.CoupOthello;
 import java.util.*;
 
+
+//Cette classe a pour but de convertir une liste de coups (donc tableau [x x])
+//en un tableau 2D de 2 colonnes avec autant de lignes que de coups dans la liste 
+
 public class OthelloConverter {
 
     public static int[][] convertirCoups(List<CoupOthello> coupsPossibles) {
@@ -23,7 +27,7 @@ public class OthelloConverter {
         }
         
         // Créer le tableau 2D avec une taille correspondant aux coups valides
-        int[][] tableau = new int[count][2];
+        int[][] tableau = new int[count][2]; //autant de ligne que count et 2 colonnes
         
         // Remplir le tableau avec les coordonnées des coups valides
         int index = 0; //mettre le premier coup dans première colonne car la procédure chooseBestmove lit les coups en colonnes
