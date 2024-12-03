@@ -87,7 +87,7 @@ public interface Oracle {
      * oracle qui sait aussi bien évaluer les situations quand c'est à J1 de jouer
      * que les situations où c'est à J2 de jouer. Dans ce cas, il serait normal
      * (mais non requis) que pour une situation s, 
-     * evalSituation(s) du point de vue de J1 = (1 - evalSituation(s)) du point de vue de J2
+     * evalSituation(s) du point de vue de J1 = (1 - evalSituation(s) du point de vue de J2)
      * </p>
      * <p> dans d'autres jeux les situations que rencontrent les joueurs J1 et J2 sont
      * toujours différentes : par exemple dans le jeu puissance 4, le joueur J1 voit 
@@ -104,8 +104,8 @@ public interface Oracle {
      * L'oracle évalue les situations du point de vue de ce joueur.
      * <pre>
      * <p> Les classes implémentant Oracle doivent s'assurer que 
- getEvalueSituationApresCoupDe toujours inclu dans joueursCompatibles
- </p>
+     * getEvalueSituationApresCoupDe toujours inclu dans joueursCompatibles
+     * </p>
      * </pre>
      * @return 
      */

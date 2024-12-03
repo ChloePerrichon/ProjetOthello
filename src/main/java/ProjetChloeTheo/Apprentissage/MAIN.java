@@ -39,6 +39,7 @@ public class MAIN {
             int nbrParties,
             boolean includeRes, boolean includeNumCoup, boolean includeTotCoup,
             Random rand) throws IOException {
+        
         int Quigagne[]= new int[2];
         
         for (int i = 0; i < nbrParties; i++) {

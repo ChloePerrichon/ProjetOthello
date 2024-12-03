@@ -36,21 +36,21 @@ public class OracleStupide implements Oracle{
     @Override
     public double evalSituation(SituationOthello s) {
         return 0.5;
-   }
+    }
 
     @Override
     public List<Joueur> joueursCompatibles() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return List.of(Joueur.NOIR,Joueur.BLANC);
     }
 
     @Override
     public Joueur getEvalueSituationApresCoupDe() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return this.evaluePour;
     }
 
     @Override
     public void setEvalueSituationApresCoupDe(Joueur j) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.evaluePour = j;
     }
     
 }

@@ -126,7 +126,8 @@ public class OracleIntelligent implements Oracle {
     // Méthode pour tester l'oracle intelligent
     public static void main(String[] args) {
         // Liste des fichiers contenant les données
-        List<String> filePaths = Arrays.asList("C:\\tmp\\noirs8000.csv", "C:\\tmp\\blancs8000.csv");
+        List<String> filePaths = Arrays.asList("C:\\tmp\\noirs8000.csv", "C:\\tmp\\blancs8000.csv",
+                "C:\\tmp\\blancs9000.csv","C:\\tmp\\noirs9000.csv");
 
         // Situation initale du jeu (par exemple)
         /* Espace de travail Chloe Theo
@@ -158,7 +159,7 @@ public class OracleIntelligent implements Oracle {
 //            System.out.println(coup.toString());
 //        }
         
-        //Convert list en tableau de int deux dimensions
+        //Convert list en tableau de int 2D
         int[][] possibleMoves = OthelloConverter.convertirCoups(CoupsPossibles);
         //int[][] possibleMoves = ListToArray.listToArray(CoupsPossibles);
         

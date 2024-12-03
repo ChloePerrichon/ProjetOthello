@@ -112,7 +112,7 @@ public class JeuOthello {
         } else {
             int pionsNoirs = d.comptePions(convNewJoueurOldJoueur(Joueur.NOIR));
             int pionsBlancs = d.comptePions(convNewJoueurOldJoueur(Joueur.BLANC));
-            if (pionsNoirs> pionsBlancs) {
+            if (pionsNoirs > pionsBlancs) {
                 return StatutSituation.NOIR_GAGNE;
             } else if (pionsBlancs > pionsNoirs) {
                 return StatutSituation.BLANC_GAGNE;
@@ -130,38 +130,42 @@ public class JeuOthello {
             boolean trace) {
         List<CoupOthello> res = new ArrayList<>();
         SituationOthello curSit = this.situationInitiale();
-        var joueurs = List.of(Joueur.NOIR, Joueur.BLANC);
-        var oracles = List.of(o1, o2);
-        var ccs = List.of(cc1, cc2);
-        var humains = List.of(j1Humain, j2Humain);
+        List<Joueur> joueurs = List.of(Joueur.NOIR, Joueur.BLANC);
+        List<Oracle> oracles = List.of(o1, o2);
+        List<ChoixCoup> ccs = List.of(cc1, cc2);
+        List<Boolean> humains = List.of(j1Humain, j2Humain);
         int numJoueur = 0;   // 0 pour NOIR, 1 pour BLANC
         while (this.statutSituation(curSit) == StatutSituation.ENCOURS) {
             if (trace) {
                 System.out.println("----- Sit actuelle -------");
                 System.out.println(curSit);
             }
+            
             Oracle curOracle = oracles.get(numJoueur);
+            Oracle advOracle = oracles.get(1 - numJoueur);
             ChoixCoup curCC = ccs.get(numJoueur);
             Joueur curJoueur = joueurs.get(numJoueur);
             boolean humain = humains.get(numJoueur);
             List<CoupOthello> possibles = this.coupsJouables(curSit, curJoueur);
             CoupOthello coupChoisi;
+            
             if (humain) {
                 coupChoisi = ListUtils.selectOne("choisissez votre coup : ", possibles, Object::toString);
             } else {
                 if (curCC == ChoixCoup.ALEA) {
                     // on ne tient aucun compte de l'oracle
                     // tirage aléatoire entre les coups possibles
-                    int numCoup = rand.nextInt(possibles.size());
-                    coupChoisi = possibles.get(numCoup);
+                    int numCoup = rand.nextInt(possibles.size());  //editer un nombre aléatoire entre 0 et la taille de la liste de coups possibles
+                    coupChoisi = possibles.get(numCoup);           //choisir le coup aléatoirement correspondant au numéro aléatoire numCoup
                 } else {
+                    
                     // je demande au stratege courant d'évaluer les coups jouables
                     // pour cela, je joue effectivement les coups, je calcule la
                     // nouvelle situation, et je demande à l'oracle ADVERSE de l'évaluer
                     List<Double> evals = new ArrayList<>();
-                    for (CoupOthello c : possibles) {
-                        SituationOthello nouvelle = this.updateSituation(curSit, curJoueur, c);
-                        evals.add(curOracle.evalSituation(nouvelle));
+                    for (CoupOthello c : possibles) {       //pour chaque coup c contenu sur chaque ligne de la liste possibles
+                        SituationOthello nouvelle = this.updateSituation(curSit, curJoueur, c); //
+                        evals.add(advOracle.evalSituation(nouvelle));
                     }
                     if (curCC == ChoixCoup.ORACLE_MEILLEUR) {
                         // on prend le coup correspondant au MIN des évaluation
@@ -179,6 +183,11 @@ public class JeuOthello {
                         coupChoisi = possibles.get(imin);
                     } else {
                         //curCC = ChoixCoup.ORACLE_PONDERE;
+                        // imaginons 3 coups possibles [c1,c2,c3] évalués à [0.2,0.4,0.6]
+                        // !! il faut "inverser" puisque les évals sont du point de vue de l'adversaire
+                        List<Double> evalsInverse = evals.stream().map(x -> 1-x).toList();
+                        // ==> [0.8,0.6,0.4]
+                        // ensuite choix pondéré ==> il aura 2 fois plus de chance de choisir le 1ier coup que le troisième
                         coupChoisi = TiragesAlea2.choixAleaPondere(possibles, evals, rand);
                     }
                 }
