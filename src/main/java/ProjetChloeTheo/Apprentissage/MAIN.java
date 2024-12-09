@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Random;
 
+
 /**
  *
  * @author francois
@@ -102,8 +103,25 @@ public class MAIN {
         }
     }
     
+     public static void testAvecOthelloV2(int nbr, String modelPath) {
+        try {
+            File dir = new File("C:\\temp");
+            JeuOthello jeu = new JeuOthello();
+            Oracle j1 = new OracleIA(Joueur.NOIR, modelPath);
+            Oracle j2 = new OracleStupide(Joueur.BLANC);
+
+            creationPartie(new File(dir, "noirs" + nbr + ".csv"), new File(dir, "blancs" + nbr + ".csv"),
+                    jeu, j1, j2, nbr, true, true, true, new Random());
+        } catch (IOException ex) {
+            throw new Error(ex);
+        }
+    }
+    
     public static void main(String[] args){
-        testAvecOthello(9000);
+        //testAvecOthello(9000);
+        // Chemin du modèle entraîné pour l'OracleIntelligent
+        String modelPath = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model.zip";
+        testAvecOthelloV2(9000, modelPath);
     }
 
 }

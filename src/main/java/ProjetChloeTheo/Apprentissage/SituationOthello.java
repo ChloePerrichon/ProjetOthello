@@ -64,6 +64,26 @@ public class SituationOthello {
         return damierReel.toString();
     }
     
+     // Nouvelle méthode pour obtenir l'état du plateau en tant que tableau de doubles
+    public double[] getBoardAsArray() {
+        double[] boardArray = new double[64];
+        int index = 0;
+        for (int lig = 0; lig < 8; lig++) {
+            for (int col = 0; col < 8; col++) {
+                Case cur = this.damierReel.getVal(lig, col);
+                if (cur == Case.VIDE) {
+                    boardArray[index] = 0.0;
+                } else if (cur == Case.NOIR) {
+                    boardArray[index] = 1.0;
+                } else if (cur == Case.BLANC) {
+                    boardArray[index] = -1.0;
+                }
+                index++;
+            }
+        }
+        return boardArray;
+    }
+    
     
     
 }

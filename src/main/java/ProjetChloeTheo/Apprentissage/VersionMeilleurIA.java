@@ -70,7 +70,7 @@ public class VersionMeilleurIA {
             saveModel(model, "othello-mlp-model.zip");
 
             // Évaluation du modèle
-            evaluateModel(model, testIterator);
+           // evaluateModel(model, testIterator);
 
         } catch (IOException | IllegalArgumentException e) {
             e.printStackTrace();

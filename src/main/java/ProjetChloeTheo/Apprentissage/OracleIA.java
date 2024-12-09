@@ -11,30 +11,36 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
+
 
 /**
  *
- * @author toliveiragaspa01
+ * @author chloé 
  */
 public class OracleIA implements Oracle{
 
     private Joueur evaluePour;
-    private MultiLayerNetwork vraiOracle;
+    private MultiLayerNetwork model;
     
-    public OracleIA(Joueur evaluePour,File sauvegarde) {
+    public OracleIA(Joueur evaluePour,String modelPath) {
+        this.evaluePour = evaluePour;
         try {
-            this.evaluePour = evaluePour;
-            this.vraiOracle = MultiLayerNetwork.load(sauvegarde, true);
+            this.model = VersionMeilleurIA.loadModel(modelPath);
         } catch (IOException ex) {
             throw new Error(ex);
         }
     }
-     @Override
+    @Override
     public double evalSituation(SituationOthello s) {
-        // transformer la situation s en IndArray
-         INDArray situation = null;
-//         return VersionMeilleurIA.makePrediction(this.vraiOracle,situation);
-        return 0.5;
+        // Convertir la situation de jeu en entrée pour le modèle
+        INDArray input = situationToINDArray(s);
+
+        // Utiliser le modèle pour faire une prédiction
+        INDArray output = model.output(input);
+
+        // Retourner la prédiction
+        return output.getDouble(0);
     }
 
     @Override
@@ -50,6 +56,19 @@ public class OracleIA implements Oracle{
     @Override
     public void setEvalueSituationApresCoupDe(Joueur j) {
         this.evaluePour = j;
+    }
+    
+    // Méthode pour convertir une situation de jeu en INDArray
+    private INDArray situationToINDArray(SituationOthello s) {
+        // Assuming SituationOthello has a method to get the board as a 1D array of doubles
+        double[] boardArray = s.getBoardAsArray();
+        if (boardArray.length != 64) {
+            throw new IllegalArgumentException("La taille du plateau doit être de 64 cases.");
+        }
+
+        // Convertir le tableau en INDArray
+        INDArray input = Nd4j.create(boardArray, 1, 64);
+        return input;
     }
     
 }
