@@ -70,7 +70,11 @@ public class VersionMeilleurIA {
             saveModel(model, "othello-mlp-model.zip");
 
             // Évaluation du modèle
-           // evaluateModel(model, testIterator);
+            evaluateModel(model, testIterator);
+
+            // Exemple de nouvelle entrée pour faire une prédiction
+            INDArray newInput = Nd4j.create(new double[]{/* valeurs de l'entrée */}, new int[]{1, 64});
+            makePrediction(model, newInput);
 
         } catch (IOException | IllegalArgumentException e) {
             e.printStackTrace();
@@ -178,7 +182,7 @@ public class VersionMeilleurIA {
     // Fonction d'entraînement du modèle
     public static void trainModel(MultiLayerNetwork model, DataSetIterator trainIterator) {
         System.out.println("Training model...");
-        for (int i = 0; i < 1; i++) { // Nombre d'époques = 1 pour simplification
+        for (int i = 0; i < 30; i++) { // Nombre d'époques = 10 pour simplification
             model.fit(trainIterator);
             System.out.println("Completed epoch " + (i + 1));
         }
@@ -201,41 +205,61 @@ public class VersionMeilleurIA {
     
     // Fonction d'évaluation du modèle
     public static void evaluateModel(MultiLayerNetwork model, DataSetIterator testIterator) {
-        System.out.println("Evaluating model...");
-        RegressionEvaluation eval = new RegressionEvaluation();
+    System.out.println("Evaluating model...");
+    RegressionEvaluation eval = new RegressionEvaluation();
 
-        while (testIterator.hasNext()) {
-            DataSet t = testIterator.next();
-            if (t.getFeatures().isEmpty() || t.getLabels().isEmpty()) {
-                System.out.println("Skipping empty DataSet.");
-                continue;
-            }
-
-            INDArray features = t.getFeatures();
-            INDArray labels = t.getLabels();
-
-            if (features.rank() != 2 || labels.rank() != 2) {
-                System.out.println("Skipping DataSet with invalid dimensions.");
-                continue;
-            }
-
-            INDArray predicted = model.output(features, false);
-
-            if (predicted.isEmpty()) {
-                System.out.println("Skipping empty prediction.");
-                continue;
-            }
-
-            eval.eval(labels, predicted);
+    while (testIterator.hasNext()) {
+        DataSet t = testIterator.next();
+        if (t.getFeatures().isEmpty() || t.getLabels().isEmpty()) {
+            System.out.println("Skipping empty DataSet.");
+            continue;
         }
 
-        System.out.println(eval.stats());
+        INDArray features = t.getFeatures();
+        INDArray labels = t.getLabels();
+
+        if (features.rank() != 2 || labels.rank() != 2) {
+            System.out.println("Skipping DataSet with invalid dimensions.");
+            continue;
+        }
+
+        INDArray predicted = model.output(features, false);
+
+        if (predicted.isEmpty()) {
+            System.out.println("Skipping empty prediction.");
+            continue;
+        }
+
+        eval.eval(labels, predicted);
     }
+
+    System.out.println(eval.stats());
+}
     
     // Exemple pour utiliser le modèle pour faire une prédiction avec de nouvelles données
+    // Exemple pour utiliser le modèle pour faire une prédiction avec de nouvelles données
     public static void makePrediction(MultiLayerNetwork model, INDArray newInput) {
-        INDArray prediction = model.output(newInput);
-        System.out.println("Prediction: " + prediction);
+        // Assurez-vous que `newInput` a les bonnes dimensions
+        if (newInput.shape()[1] != 64) {
+            throw new IllegalArgumentException("L'entrée doit avoir 64 colonnes.");
+        }
+
+        // Prédiction avec le modèle
+        INDArray output = model.output(newInput);
+        double[] predictions = output.toDoubleVector();
+
+        // Affichage des prédictions en pourcentage
+        System.out.println("Prédictions (en pourcentage) : ");
+        for (int i = 0; i < predictions.length; i++) {
+            System.out.printf("Classe %d: %.2f%%\n", i, predictions[i] * 100);
+        }
     }
+  }
+
+
+     
+     
     
-}
+    
+    
+
