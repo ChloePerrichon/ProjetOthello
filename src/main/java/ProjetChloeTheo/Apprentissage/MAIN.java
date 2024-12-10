@@ -44,8 +44,8 @@ public class MAIN {
         int Quigagne[]= new int[2];
         
         for (int i = 0; i < nbrParties; i++) {
-            ResumeResultat resj = jeu.partie(j1,ChoixCoup.ALEA,
-                    j2, ChoixCoup.ALEA, false, false, rand,false);
+            ResumeResultat resj = jeu.partie(j1,ChoixCoup.ORACLE_MEILLEUR,    // LIGNE POUR MODIFIER LES CHOIX COUPS DES ORACLES
+                    j2, ChoixCoup.ALEA, false, false, rand,false);  //je joue la partie ici !!!
             // je rejoue la partie pour avoir les situations
             SituationOthello curSit = jeu.situationInitiale();
             Writer curOut = outJ1;
@@ -74,7 +74,7 @@ public class MAIN {
                 }
                 curRes = 1 - curRes;
                 numCoup++;
-                generateUneLigneCSVOfSituations(curOut, curSit, curRes, numCoup, totCoups, includeRes, includeNumCoup, includeTotCoup); //générer nvelle ligne à chaque coup
+                generateUneLigneCSVOfSituations(curOut, curSit, curRes, numCoup, totCoups, includeRes, includeNumCoup, includeTotCoup); //générer nouvelle ligne à chaque coup
                 curJoueur = curJoueur.adversaire();
             }
         }
@@ -97,7 +97,7 @@ public class MAIN {
         try {
             File dir = new File("C:\\tmp");
             creationPartie(new File(dir, "noirs" + nbr +".csv"), new File(dir, "blancs"+nbr+".csv"),
-                    new JeuOthello(), new OracleStupide(Joueur.NOIR), new OracleStupide(Joueur.BLANC),nbr, true, true, true,new Random());
+                    new JeuOthello(), new OracleStupide(Joueur.NOIR), new OracleStupide(Joueur.BLANC),nbr, true, true, true,new Random());   // LIGNE POUR MODIFIER LES ORACLES POUR FAIRE JOUER
         } catch (IOException ex){
             throw new Error(ex);
         }
@@ -118,10 +118,10 @@ public class MAIN {
     }
     
     public static void main(String[] args){
-        //testAvecOthello(9000);
+        testAvecOthello(9000);
         // Chemin du modèle entraîné pour l'OracleIntelligent
-        String modelPath = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model.zip";
-        testAvecOthelloV2(9000, modelPath);
+        //String modelPath = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model.zip";
+        //testAvecOthelloV2(9000, modelPath);
     }
 
 }

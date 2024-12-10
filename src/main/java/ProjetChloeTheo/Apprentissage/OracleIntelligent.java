@@ -24,22 +24,23 @@ public class OracleIntelligent implements Oracle {
 
     @Override
     public double evalSituation(SituationOthello s) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        //todo
+        return 0; // a modifier
     }
 
     @Override
     public List<Joueur> joueursCompatibles() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return List.of(Joueur.NOIR,Joueur.BLANC);
     }
 
     @Override
     public Joueur getEvalueSituationApresCoupDe() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return this.evaluePour;
     }
 
     @Override
     public void setEvalueSituationApresCoupDe(Joueur j) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.evaluePour = j;
     }
 
     // Classe pour stocker une situation unique et ses résultats

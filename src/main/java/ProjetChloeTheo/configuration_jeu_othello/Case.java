@@ -36,7 +36,7 @@ public enum Case{
             return ".";
         } else if (this == NOIR) {
             return "X";
-        } else {
+        } else { //blanc
             return "O";
         }
     }    

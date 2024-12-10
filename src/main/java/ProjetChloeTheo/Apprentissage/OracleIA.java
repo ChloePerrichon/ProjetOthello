@@ -38,9 +38,11 @@ public class OracleIA implements Oracle{
 
         // Utiliser le modèle pour faire une prédiction
         INDArray output = model.output(input);
+        
+        double eval =output.getDouble(0);
 
         // Retourner la prédiction
-        return output.getDouble(0);
+        return eval;
     }
 
     @Override

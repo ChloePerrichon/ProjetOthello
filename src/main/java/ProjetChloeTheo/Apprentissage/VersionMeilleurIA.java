@@ -237,11 +237,5 @@ public class VersionMeilleurIA {
         INDArray prediction = model.output(newInput);
         System.out.println("Prediction: " + prediction);
     }
-
-
-     
-     
-    
-    
     
 }
