@@ -103,7 +103,7 @@ public class MAIN {
         try {
             File dir = new File("C:\\temp");
             creationPartie(new File(dir, "noirs" + nbr +".csv"), new File(dir, "blancs"+nbr+".csv"),
-                    new JeuOthello(), new OracleStupide(Joueur.NOIR), new OracleStupide(Joueur.BLANC),nbr, true, true, true,new Random());
+                    new JeuOthello(), new OracleStupide(Joueur.NOIR), new OracleStupide(Joueur.BLANC),nbr, true, false, false,new Random());
         } catch (IOException ex){
             throw new Error(ex);
         }
@@ -119,31 +119,16 @@ public class MAIN {
             creationPartie(new File(dir, "noirs" + nbr + ".csv"), new File(dir, "blancs" + nbr + ".csv"),
                     jeu, j1, j2, nbr, true, true, true, new Random());
             
-             // Charger le modèle
-           // MultiLayerNetwork model = VersionMeilleurIA.loadModel(modelPath);
-
-            // Charger les données de test à partir d'un fichier CSV
-            //String csvFilePath = "C:\\temp\\noirs8000.csv"; // Chemin vers votre fichier CSV de test
-            //DataSet testDataset = VersionMeilleurIA.createDataset(csvFilePath);
-            //DataSetIterator testIterator = new ListDataSetIterator<>(testDataset.asList(), 128);
-
-            // Évaluer le modèle
-           // VersionMeilleurIA.evaluateModel(model, testIterator);
-
-            // Prédiction d'exemple
-            //INDArray newInput = Nd4j.zeros(1, 64);  // Remplacer par vos nouvelles données d'entrée
-            //VersionMeilleurIA.makePrediction(model, newInput);
-            
         } catch (IOException ex) {
             throw new Error(ex);
         }
     }
     
     public static void main(String[] args){
-        //testAvecOthello(9000);
+        testAvecOthello(9000);
         // Chemin du modèle entraîné pour l'OracleIntelligent
-        String modelPath = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model.zip";
-        testAvecOthelloV2(8000, modelPath);
+        //String modelPath = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model.zip";
+        //testAvecOthelloV2(8000, modelPath);
     }
 
 }
