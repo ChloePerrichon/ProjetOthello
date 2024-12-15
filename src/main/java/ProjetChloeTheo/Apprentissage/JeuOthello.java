@@ -134,7 +134,7 @@ public class JeuOthello {
         List<Oracle> oracles = List.of(o1, o2);
         List<ChoixCoup> ccs = List.of(cc1, cc2);
         List<Boolean> humains = List.of(j1Humain, j2Humain);
-        int numJoueur = 0;   // 0 pour NOIR, 1 pour BLANC
+        int numJoueur = 0;   //0 pour NOIR, 1 pour BLANC, donc o1 c'est tjr NOIR, o2 trj BLANC
         while (this.statutSituation(curSit) == StatutSituation.ENCOURS) {
             if (trace) {
                 System.out.println("----- Sit actuelle -------");
@@ -163,8 +163,8 @@ public class JeuOthello {
                     // pour cela, je joue effectivement les coups, je calcule la
                     // nouvelle situation, et je demande à l'oracle ADVERSE de l'évaluer
                     List<Double> evals = new ArrayList<>();
-                    for (CoupOthello c : possibles) {       //pour chaque coup c contenu sur chaque ligne de la liste possibles
-                        SituationOthello nouvelle = this.updateSituation(curSit, curJoueur, c); //
+                    for (CoupOthello coup : possibles) {       //pour chaque coup contenu sur chaque ligne de la liste possibles
+                        SituationOthello nouvelle = this.updateSituation(curSit, curJoueur, coup); //
                         evals.add(advOracle.evalSituation(nouvelle));
                     }
                     if (curCC == ChoixCoup.ORACLE_MEILLEUR) {
@@ -176,27 +176,31 @@ public class JeuOthello {
                         double min = evals.get(imin);
                         for (int i = 1; i < evals.size(); i++) {
                             if (evals.get(i) < min) {
-                                imin = i;
-                                min = evals.get(imin);
+                                imin = i;               // imin index du minimum en fin de boucle for
+                                min = evals.get(imin); // minimum de la liste evals en fin de boucle for
                             }
                         }
-                        coupChoisi = possibles.get(imin);
-                    } else {
-                        //curCC = ChoixCoup.ORACLE_PONDERE;
-                        // imaginons 3 coups possibles [c1,c2,c3] évalués à [0.2,0.4,0.6]
+                        coupChoisi = possibles.get(imin);  // les deux listes sont de même taille , donc je choisis le coup en index du coup le moins favorable pour adv
+                    } else { // en fait on a curCC = ChoixCoup.ORACLE_PONDERE;
+                        
+                        // imaginons 3 coups possibles [c1,c2,c3,c4] évalués à [0.2,0.7,0.6,0.1]
                         // !! il faut "inverser" puisque les évals sont du point de vue de l'adversaire
-                        List<Double> evalsInverse = evals.stream().map(x -> 1-x).toList();
-                        // ==> [0.8,0.6,0.4]
-                        // ensuite choix pondéré ==> il aura 2 fois plus de chance de choisir le 1ier coup que le troisième
-                        coupChoisi = TiragesAlea2.choixAleaPondere(possibles, evals, rand);
+                        
+                        List<Double> evalsInverse = evals.stream().map(x -> 1-x).toList(); // ça crée une list "evals" du pdv du curJoueur, donc ici on va chercehr le max pour meilleur coup
+                        // ==> [0.8,0.3,0.4,0.9]
+                        
+                        // ensuite choix pondéré ==> il aura 2 fois plus de chance de choisir le premier coup que le troisième
+                        // également 3 fois plus de chance de choisir le quatrieme coup que le deuxième
+                        coupChoisi = TiragesAlea2.choixAleaPondere(possibles, evalsInverse, rand);
                     }
                 }
             }
             if (trace) {
-                System.out.println("je joueur " + curJoueur + " joue en " + coupChoisi);
+                System.out.println("Le joueur " + curJoueur + " joue en " + coupChoisi);
             }
             // je change la situation en fonction du coup réellement choisi
             curSit = this.updateSituation(curSit, curJoueur, coupChoisi);
+            //je stocke le coup joué dans la liste de coups joués
             res.add(coupChoisi);
             // et je passe au joueur suivant sauf si passe
             numJoueur = 1 - numJoueur;
@@ -209,7 +213,7 @@ public class JeuOthello {
                 System.out.println("Match nul");
             } else if (statut == StatutSituation.NOIR_GAGNE) {
                 System.out.println("Gagnant : " + Joueur.NOIR);
-            } else {
+            } else { //ou alors on a statut == StatutSituation.BLANC_GAGNE
                 System.out.println("Gagnant : " + Joueur.BLANC);
             }
         }

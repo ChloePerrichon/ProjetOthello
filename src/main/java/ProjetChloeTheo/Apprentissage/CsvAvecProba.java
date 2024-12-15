@@ -4,87 +4,74 @@
  */
 package ProjetChloeTheo.Apprentissage;
 
-import au.com.bytecode.opencsv.CSVWriter;
-import com.opencsv.CSVReader;
-import com.opencsv.ICSVWriter;
-import com.opencsv.exceptions.CsvValidationException;
+
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 /**
  *
  * @author chloe
  */
 public class CsvAvecProba {
-    private static final String INPUT_CSV = "C:\\temp\\noirs8000.csv";
-    private static final String OUTPUT_CSV = "C:\\temp\\noirs8000_with_win_prob.csv";
+    private static Map<String, List<Double>> readAndProcessCSV(String filename) throws IOException {
+        Map<String, List<Double>> dataMap = new HashMap<>();
+        BufferedReader br = new BufferedReader(new FileReader(filename));
+        String line;
 
-    public static void main(String[] args) throws CsvValidationException {
-        try {
-            Map<String, int[]> positionStats = readAndProcessCSV(INPUT_CSV);
-            writeNewCSV(OUTPUT_CSV, positionStats);
-            System.out.println("Nouveau fichier CSV créé : " + OUTPUT_CSV);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static Map<String, int[]> readAndProcessCSV(String filePath) throws IOException, CsvValidationException {
-        Map<String, int[]> positionStats = new HashMap<>();
-
-        try (CSVReader reader = new CSVReader(new FileReader(filePath))) {
-            String[] nextLine;
-            while ((nextLine = reader.readNext()) != null) {
-                if (nextLine.length < 67) {
-                    System.err.println("Ligne ignorée: nombre incorrect de colonnes");
-                    continue;
+        while ((line = br.readLine()) != null) {
+            // Diviser la ligne en valeurs
+            String[] values = line.split(",");
+            
+            if(values.length == 65){
+                String key = "";
+                for (int i=0 ; i<64 ; i++){
+                    key += values[i] + ",";
                 }
-
-                StringBuilder positionKeyBuilder = new StringBuilder();
-                for (int i = 0; i < 64; i++) {
-                    positionKeyBuilder.append(nextLine[i]).append(",");
-                }
-                String positionKey = positionKeyBuilder.toString();
-
-                int resultPartie = Integer.parseInt(nextLine[65]);
-
-                positionStats.putIfAbsent(positionKey, new int[2]);
-                int[] stats = positionStats.get(positionKey);
-                stats[0] += resultPartie; // Victoires
-                stats[1] += 1; // Parties jouées
+                double proba = Double.parseDouble(values[64]);
+                dataMap.computeIfAbsent(key, k -> new ArrayList<>()).add(proba);
             }
         }
-
-        return positionStats;
+        br.close();
+        return dataMap;
     }
 
-    private static void writeNewCSV(String filePath, Map<String, int[]> positionStats) throws IOException {
-    // Crée un writer sans guillemets
-        try (CSVWriter writer = new CSVWriter(new FileWriter(filePath), CSVWriter.DEFAULT_SEPARATOR, CSVWriter.NO_QUOTE_CHARACTER)) {
-            String[] header = new String[65];
-            for (int i = 0; i < 64; i++) {
-                header[i] = "feature_" + (i + 1);
+    private static void writeAveragedDataToCSV(Map<String, List<Double>> dataMap, String outputFile) throws IOException {
+        FileWriter writer = new FileWriter(outputFile);
+
+        for (Map.Entry<String, List<Double>> entry : dataMap.entrySet()) {
+            String key = entry.getKey();
+            List<Double> probas = entry.getValue();
+
+            // Calculer la moyenne des 65e valeurs
+            double sum = 0;
+            for (double proba : probas) {
+                sum += proba;
             }
-            header[64] = "win_prob";
-            writer.writeNext(header);
-
-            for (Map.Entry<String, int[]> entry : positionStats.entrySet()) {
-                String positionKey = entry.getKey();
-                int[] stats = entry.getValue();
-                double winProb = (double) stats[0] / stats[1];
-
-                String[] row = new String[65];
-                String[] positionValues = positionKey.split(",");
-                System.arraycopy(positionValues, 0, row, 0, 64);
-                row[64] = String.valueOf(winProb);
-
-                writer.writeNext(row);
-            }
+            double probaMoyenne = sum / probas.size();
+            
+            // Écrire les 64 premières valeurs et la moyenne dans le fichier de sortie
+            writer.write(key + probaMoyenne + "\n");
         }
-    }
 
-}
+        writer.close();
+    }
     
+     public static void main(String[] args) {
+        String inputFilename = "C:\\temp\\noirs9000.csv"; // Chemin du fichier fourni
+        String outputFilename = "C:\\temp\\noirsProba9000.csv"; // Chemin du fichier de sortie
 
+        try {
+            Map<String, List<Double>> dataMap = readAndProcessCSV(inputFilename);
+            writeAveragedDataToCSV(dataMap, outputFilename);
+            System.out.println("Processing completed. Averaged data written to " + outputFilename);
+        } catch (IOException e) {
+            System.err.println("An error occurred while processing the CSV files: " + e.getMessage());
+        }
+    }
+    
+}
