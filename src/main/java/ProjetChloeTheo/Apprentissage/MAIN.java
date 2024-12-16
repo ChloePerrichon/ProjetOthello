@@ -101,7 +101,7 @@ public class MAIN {
 
     public static void testAvecOthello(int nbr) {
         try {
-            File dir = new File("C:\\tmp"); //attention je crois que sur l'ordi de chloe c'est temp
+            File dir = new File("ProjetChloeTheo/Ressources"); //attention je crois que sur l'ordi de chloe c'est temp
             //File dir = new File("C:\\temp");
             creationPartie(new File(dir, "noirs" + nbr +".csv"), new File(dir, "blancs"+nbr+".csv"),
                     new JeuOthello(), new OracleStupide(Joueur.NOIR), new OracleStupide(Joueur.BLANC),nbr, true, false, false,new Random());
