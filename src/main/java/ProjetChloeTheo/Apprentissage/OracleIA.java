@@ -4,39 +4,37 @@
  */
 package ProjetChloeTheo.Apprentissage;
 
+/**
+ *
+ * @author chloe
+ */
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
-
-/**
- *
- * @author chloé 
- */
 public class OracleIA implements Oracle{
-
+    
     private Joueur evaluePour;
     private MultiLayerNetwork model;
     
-    public OracleIA(Joueur evaluePour,String modelPath) {
+    public OracleIA(Joueur evaluePour, String modelPath) throws IOException {
+        // Initialisation de l'oracle avec le joueur pour lequel il évalue
         this.evaluePour = evaluePour;
-        try {
-            this.model = VersionMeilleurIA.loadModel(modelPath);
-        } catch (IOException ex) {
-            throw new Error(ex);
-        }
+        // Chargement du modèle de réseau de neurones à partir du fichier
+        this.model = MultiLayerNetwork.load(new File(modelPath), true);
     }
+
     @Override
     public double evalSituation(SituationOthello s) {
-        // Convertir la situation de jeu en entrée pour le modèle
-        INDArray input = situationToINDArray(s);
-
-        // Utiliser le modèle pour faire une prédiction
+        // Extraction des caractéristiques de la situation de jeu
+        double[] features = s.getBoardAsArray();
+        // Conversion des caractéristiques en INDArray pour l'entrée du modèle
+        INDArray input = Nd4j.create(features, new int[]{1, features.length});
+        // Prédiction de la probabilité de victoire
         INDArray output = model.output(input);
         
         double eval =output.getDouble(0);
@@ -47,30 +45,19 @@ public class OracleIA implements Oracle{
 
     @Override
     public List<Joueur> joueursCompatibles() {
-        return List.of(Joueur.NOIR,Joueur.BLANC);
+        // Liste des joueurs compatibles avec cet oracle
+        return List.of(Joueur.NOIR, Joueur.BLANC);
     }
 
     @Override
     public Joueur getEvalueSituationApresCoupDe() {
+        // Retourne le joueur pour lequel l'oracle évalue la situation
         return this.evaluePour;
     }
 
     @Override
     public void setEvalueSituationApresCoupDe(Joueur j) {
+        // Définit le joueur pour lequel l'oracle évalue la situation
         this.evaluePour = j;
     }
-    
-    // Méthode pour convertir une situation de jeu en INDArray
-    private INDArray situationToINDArray(SituationOthello s) {
-        // Assuming SituationOthello has a method to get the board as a 1D array of doubles
-        double[] boardArray = s.getBoardAsArray();
-        if (boardArray.length != 64) {
-            throw new IllegalArgumentException("La taille du plateau doit être de 64 cases.");
-        }
-
-        // Convertir le tableau en INDArray
-        INDArray input = Nd4j.create(boardArray, 1, 64);
-        return input;
-    }
-    
 }

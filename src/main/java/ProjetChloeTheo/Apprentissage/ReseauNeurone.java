@@ -4,6 +4,11 @@
  */
 package ProjetChloeTheo.Apprentissage;
 
+/**
+ *
+ * @author chloe
+ */
+
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -21,7 +26,6 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
-import org.deeplearning4j.datasets.iterator.utilty.ListDataSetIterator;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -29,19 +33,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-/**
- *
- * @author chloe
- */
-public class VersionMeilleurIA {
-    
-     private static MultiLayerNetwork model;
+import org.deeplearning4j.datasets.iterator.utilty.ListDataSetIterator;
+import org.deeplearning4j.util.ModelSerializer;
+public class ReseauNeurone {
+    private static MultiLayerNetwork model;
      
-     // Fonction main orchestrant tout le processus
     public static void main(String[] args) {
         try {
-            String csvFilePath = "C:\\temp\\noirs8000.csv"; // Chemin vers votre fichier CSV
+            String csvFilePath = "C:\\temp\\noirsProba9000.csv"; // Chemin vers votre fichier CSV
 
             DataSet dataset = createDataset(csvFilePath);
             System.out.println("Dataset created with " + dataset.numExamples() + " examples.");
@@ -64,24 +63,25 @@ public class VersionMeilleurIA {
             model = createModel(seed, learningRate);
 
             // Entraînement du modèle
-            trainModel(model, trainIterator);
+           // trainModel(model, trainIterator);
 
             // Enregistrement du modèle
-            saveModel(model, "othello-mlp-model.zip");
-
+            //saveModel(model, "othello-mlp-model.zip");
+            
             // Évaluation du modèle
-            evaluateModel(model, testIterator);
+            String modelPath = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model.zip";
+            evaluateModel(modelPath, testIterator);
 
             // Exemple de nouvelle entrée pour faire une prédiction
-            INDArray newInput = Nd4j.create(new double[]{/* valeurs de l'entrée */}, new int[]{1, 64});
-            makePrediction(model, newInput);
+            //INDArray newInput = Nd4j.create(new double[]{/* valeurs de l'entrée */}, new int[]{1, 64});
+            //makePrediction(model, newInput);
 
         } catch (IOException | IllegalArgumentException e) {
             e.printStackTrace();
         }
     }
      
-      // Fonction de création du dataset à partir d'un fichier CSV
+    // Fonction de création du dataset à partir d'un fichier CSV
     public static DataSet createDataset(String csvFilePath) throws IOException {
         List<INDArray> inputList = new ArrayList<>();
         List<INDArray> outputList = new ArrayList<>();
@@ -92,7 +92,7 @@ public class VersionMeilleurIA {
             while ((line = br.readLine()) != null) {
                 lineNumber++;
                 String[] values = line.split(",");
-                if (values.length != 67) { // Ajusté pour 67 colonnes (64 entrées + 1 sortie + 2 qui ne sont pas utiles)
+                if (values.length != 65) { // Ajusté pour 65 colonnes (64 entrées + 1 sortie)
                     System.err.println("Line " + lineNumber + " has " + values.length + " columns: " + line);
                     continue; // Sauter cette ligne
                 }
@@ -149,7 +149,7 @@ public class VersionMeilleurIA {
         return dataset;
     }
     
-     // Fonction de création du modèle de réseau neuronal
+    // Fonction de création du modèle de réseau neuronal
     public static MultiLayerNetwork createModel(int seed, double learningRate) {
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
             .seed(seed)
@@ -182,13 +182,13 @@ public class VersionMeilleurIA {
     // Fonction d'entraînement du modèle
     public static void trainModel(MultiLayerNetwork model, DataSetIterator trainIterator) {
         System.out.println("Training model...");
-        for (int i = 0; i < 30; i++) { // Nombre d'époques = 10 pour simplification
+        for (int i = 0; i < 30; i++) { // Nombre d'époques = 30
             model.fit(trainIterator);
             System.out.println("Completed epoch " + (i + 1));
         }
     }
     
-     // Fonction d'enregistrement du modèle
+    // Fonction d'enregistrement du modèle
     public static void saveModel(MultiLayerNetwork model, String modelPath) throws IOException {
         System.out.println("Saving the model...");
         model.save(new File(modelPath));
@@ -204,39 +204,24 @@ public class VersionMeilleurIA {
     }
     
     // Fonction d'évaluation du modèle
-    public static void evaluateModel(MultiLayerNetwork model, DataSetIterator testIterator) {
-    System.out.println("Evaluating model...");
-    RegressionEvaluation eval = new RegressionEvaluation();
-
-    while (testIterator.hasNext()) {
-        DataSet t = testIterator.next();
-        if (t.getFeatures().isEmpty() || t.getLabels().isEmpty()) {
-            System.out.println("Skipping empty DataSet.");
-            continue;
+    public static void evaluateModel(String modelPath, DataSetIterator testIterator) throws IOException {
+        // Charger le modèle à partir du fichier donné (par son chemin)
+        MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(modelPath);
+        System.out.println("Evaluating model...");
+        // Créer une instance d'évaluation
+        RegressionEvaluation eval = new RegressionEvaluation();
+        // Parcourir les données de test pour faire des prédictions et évaluer le modèle
+        while (testIterator.hasNext()) {
+            DataSet t = testIterator.next();
+            INDArray features = t.getFeatures();
+            INDArray labels = t.getLabels();
+            INDArray predicted = model.output(features, false);  // Obtenez les prédictions du modèle
+            eval.eval(labels, predicted);  // Comparez les prédictions aux labels réels
         }
-
-        INDArray features = t.getFeatures();
-        INDArray labels = t.getLabels();
-
-        if (features.rank() != 2 || labels.rank() != 2) {
-            System.out.println("Skipping DataSet with invalid dimensions.");
-            continue;
-        }
-
-        INDArray predicted = model.output(features, false);
-
-        if (predicted.isEmpty()) {
-            System.out.println("Skipping empty prediction.");
-            continue;
-        }
-
-        eval.eval(labels, predicted);
+        // Afficher les résultats d'évaluation
+        System.out.println(eval.stats());
     }
-
-    System.out.println(eval.stats());
-}
     
-    // Exemple pour utiliser le modèle pour faire une prédiction avec de nouvelles données
     // Exemple pour utiliser le modèle pour faire une prédiction avec de nouvelles données
     public static void makePrediction(MultiLayerNetwork model, INDArray newInput) {
         // Assurez-vous que `newInput` a les bonnes dimensions
@@ -246,20 +231,11 @@ public class VersionMeilleurIA {
 
         // Prédiction avec le modèle
         INDArray output = model.output(newInput);
-        double[] predictions = output.toDoubleVector();
+        double prediction = output.getDouble(0);
 
-        // Affichage des prédictions en pourcentage
-        System.out.println("Prédictions (en pourcentage) : ");
-        for (int i = 0; i < predictions.length; i++) {
-            System.out.printf("Classe %d: %.2f%%\n", i, predictions[i] * 100);
-        }
+        // Affichage de la prédiction
+        System.out.printf("Prédiction: %.2f%%\n", prediction * 100);
     }
-  }
-
-
-     
-     
-    
-    
+}
     
 
