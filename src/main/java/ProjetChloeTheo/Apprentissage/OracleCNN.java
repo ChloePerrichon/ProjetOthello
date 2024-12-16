@@ -16,12 +16,12 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
-public class OracleIA implements Oracle{
+public class OracleCNN implements Oracle{
     
     private Joueur evaluePour;
     private MultiLayerNetwork model;
     
-    public OracleIA(Joueur evaluePour, String modelPath) throws IOException {
+    public OracleCNN(Joueur evaluePour, String modelPath) throws IOException {
         // Initialisation de l'oracle avec le joueur pour lequel il évalue
         this.evaluePour = evaluePour;
         // Chargement du modèle de réseau de neurones à partir du fichier
@@ -38,6 +38,9 @@ public class OracleIA implements Oracle{
         INDArray output = model.output(input);
         
         double eval =output.getDouble(0);
+        if(evaluePour == Joueur.BLANC) {
+            eval=1-eval;
+        }
 
         // Retourner la prédiction
         return eval;

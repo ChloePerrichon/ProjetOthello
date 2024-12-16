@@ -110,16 +110,16 @@ public class MAIN {
         }
     }
     
-     public static void testAvecOthelloV2(int nbr, String modelPath) {
+     public static void testAvecOthelloV2(int nbr, String modelPath,String modelPath1) {
         try {
             //File dir = new File("C:\\tmp");
             File dir = new File("C:\\temp");
             JeuOthello jeu = new JeuOthello();
-            Oracle j1 = new OracleIA(Joueur.NOIR, modelPath);
-            Oracle j2 = new OracleStupide(Joueur.BLANC);
+            Oracle j1 = new OracleCNN(Joueur.NOIR, modelPath);
+            Oracle j2 = new OracleCNN(Joueur.BLANC, modelPath1);
 
             creationPartie(new File(dir, "noirs" + nbr + ".csv"), new File(dir, "blancs" + nbr + ".csv"),
-                    jeu, j1, j2, nbr, true, true, true, new Random());
+                    jeu, j1, j2, nbr, true, false, false, new Random());
             
         } catch (IOException ex) {
             throw new Error(ex);
@@ -127,10 +127,11 @@ public class MAIN {
     }
     
     public static void main(String[] args){
-        testAvecOthello(8000);
+        //testAvecOthello(8000);
         // Chemin du modèle entraîné pour l'OracleIntelligent
-        String modelPath = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model.zip";
-        testAvecOthelloV2(9000, modelPath);
+        String modelPath = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model-oraclepondere-noir.zip";
+        String modelPath1 = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model.zip";
+        testAvecOthelloV2(300, modelPath,modelPath1);
     }
 
 }

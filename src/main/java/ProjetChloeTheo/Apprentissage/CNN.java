@@ -35,12 +35,12 @@ import java.util.ArrayList;
 import java.util.List;
 import org.deeplearning4j.datasets.iterator.utilty.ListDataSetIterator;
 import org.deeplearning4j.util.ModelSerializer;
-public class ReseauNeurone {
+public class CNN {
     private static MultiLayerNetwork model;
      
     public static void main(String[] args) {
         try {
-            String csvFilePath = "C:\\temp\\noirsProba9000.csv"; // Chemin vers votre fichier CSV
+            String csvFilePath = "C:\\temp\\noirsProba10000.csv"; // Chemin vers votre fichier CSV
 
             DataSet dataset = createDataset(csvFilePath);
             System.out.println("Dataset created with " + dataset.numExamples() + " examples.");
@@ -58,20 +58,20 @@ public class ReseauNeurone {
             // Paramètres du modèle
             int seed = 123;
             double learningRate = 0.001;
-            int numEpoque =30;
+            int numEpoque = 30;
 
             // Création du modèle
             model = createModel(seed, learningRate);
 
             // Entraînement du modèle
-           // trainModel(model, trainIterator,numEpoque);
+            trainModel(model, trainIterator,numEpoque);
 
             // Enregistrement du modèle
-            //saveModel(model, "othello-mlp-model.zip");
+            saveModel(model, "othello-mlp-model-oraclepondere-noir.zip");
             
             // Évaluation du modèle
-            String modelPath = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model.zip";
-            evaluateModel(modelPath, testIterator);
+            //String modelPath = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model-oraclepondere-noir.zip";
+            //evaluateModel(modelPath, testIterator);
 
             // Exemple de nouvelle entrée pour faire une prédiction
             //INDArray newInput = Nd4j.create(new double[]{/* valeurs de l'entrée */}, new int[]{1, 64});
