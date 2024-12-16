@@ -113,7 +113,7 @@ public class MAIN {
      public static void testAvecOthelloV2(int nbr, String modelPath,String modelPath1) {
         try {
             //File dir = new File("C:\\tmp");
-            File dir = new File("C:\\temp");
+            File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources");
             JeuOthello jeu = new JeuOthello();
             Oracle j1 = new OracleCNN(Joueur.NOIR, modelPath);
             Oracle j2 = new OracleCNN(Joueur.BLANC, modelPath1);
