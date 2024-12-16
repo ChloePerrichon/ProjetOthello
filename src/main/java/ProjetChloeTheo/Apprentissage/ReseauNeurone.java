@@ -58,12 +58,13 @@ public class ReseauNeurone {
             // Paramètres du modèle
             int seed = 123;
             double learningRate = 0.001;
+            int numEpoque =30;
 
             // Création du modèle
             model = createModel(seed, learningRate);
 
             // Entraînement du modèle
-           // trainModel(model, trainIterator);
+           // trainModel(model, trainIterator,numEpoque);
 
             // Enregistrement du modèle
             //saveModel(model, "othello-mlp-model.zip");
@@ -180,9 +181,9 @@ public class ReseauNeurone {
     }
     
     // Fonction d'entraînement du modèle
-    public static void trainModel(MultiLayerNetwork model, DataSetIterator trainIterator) {
+    public static void trainModel(MultiLayerNetwork model, DataSetIterator trainIterator,int numEpoque) {
         System.out.println("Training model...");
-        for (int i = 0; i < 30; i++) { // Nombre d'époques = 30
+        for (int i = 0; i < numEpoque; i++) { // Nombre d'époques = 30
             model.fit(trainIterator);
             System.out.println("Completed epoch " + (i + 1));
         }
