@@ -165,7 +165,7 @@ public class JeuOthello {
                     List<Double> evals = new ArrayList<>();
                     for (CoupOthello coup : possibles) {       //pour chaque coup contenu sur chaque ligne de la liste possibles
                         SituationOthello nouvelle = this.updateSituation(curSit, curJoueur, coup); //
-                        evals.add(advOracle.evalSituation(nouvelle));
+                        evals.add(advOracle.evalSituation(nouvelle));  //ajout de l'évaluation du pdv de l'adv 
                     }
                     if (curCC == ChoixCoup.ORACLE_MEILLEUR) {
                         // on prend le coup correspondant au MIN des évaluation
@@ -176,14 +176,14 @@ public class JeuOthello {
                         double min = evals.get(imin);
                         for (int i = 1; i < evals.size(); i++) {
                             if (evals.get(i) < min) {
-                                imin = i;               // imin index du minimum en fin de boucle for
+                                imin = i;              // imin index du minimum en fin de boucle for
                                 min = evals.get(imin); // minimum de la liste evals en fin de boucle for
                             }
                         }
                         coupChoisi = possibles.get(imin);  // les deux listes sont de même taille , donc je choisis le coup en index du coup le moins favorable pour adv
                     } else { // en fait on a curCC = ChoixCoup.ORACLE_PONDERE;
                         
-                        // imaginons 3 coups possibles [c1,c2,c3,c4] évalués à [0.2,0.7,0.6,0.1]
+                        // imaginons 4 coups possibles [c1,c2,c3,c4] évalués à evals = [0.2,0.7,0.6,0.1]
                         // !! il faut "inverser" puisque les évals sont du point de vue de l'adversaire
                         
                         List<Double> evalsInverse = evals.stream().map(x -> 1-x).toList(); // ça crée une list "evals" du pdv du curJoueur, donc ici on va chercehr le max pour meilleur coup
