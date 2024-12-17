@@ -51,7 +51,7 @@ public class MAIN {
         
         for (int i = 0; i < nbrParties; i++) {
             ResumeResultat resj = jeu.partie(j1,ChoixCoup.ORACLE_MEILLEUR,    // LIGNE POUR MODIFIER LES CHOIX COUPS DES ORACLES
-                    j2, ChoixCoup.ALEA, false, false, rand,false);  //je joue la partie ici !!!
+                    j2, ChoixCoup.ORACLE_PONDERE, false, false, rand,false);  //je joue la partie ici !!!
             // je rejoue la partie pour avoir les situations
             SituationOthello curSit = jeu.situationInitiale();
             Writer curOut = outJ1;
@@ -101,7 +101,7 @@ public class MAIN {
 
     public static void testAvecOthello(int nbr) {
         try {
-            File dir = new File("ProjetChloeTheo/Ressources"); //attention je crois que sur l'ordi de chloe c'est temp
+            File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvSansEntrainement"); //attention je crois que sur l'ordi de chloe c'est temp
             //File dir = new File("C:\\temp");
             creationPartie(new File(dir, "noirs" + nbr +".csv"), new File(dir, "blancs"+nbr+".csv"),
                     new JeuOthello(), new OracleStupide(Joueur.NOIR), new OracleStupide(Joueur.BLANC),nbr, true, false, false,new Random());
@@ -113,12 +113,13 @@ public class MAIN {
      public static void testAvecOthelloV2(int nbr, String modelPath,String modelPath1) {
         try {
             //File dir = new File("C:\\tmp");
-            File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources");
+            File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement");
             JeuOthello jeu = new JeuOthello();
-            Oracle j1 = new OracleCNN(Joueur.NOIR, modelPath);
-            Oracle j2 = new OracleCNN(Joueur.BLANC, modelPath1);
+            Oracle j1 = new OraclePerceptron(Joueur.NOIR, modelPath);
+            Oracle j2 = new OraclePerceptron(Joueur.BLANC, modelPath1);
+            
 
-            creationPartie(new File(dir, "noirs" + nbr + ".csv"), new File(dir, "blancs" + nbr + ".csv"),
+            creationPartie(new File(dir, "noirs" + nbr + "OM-OP.csv"), new File(dir, "blancs" + nbr + "OM-OP.csv"),
                     jeu, j1, j2, nbr, true, false, false, new Random());
             
         } catch (IOException ex) {
@@ -127,11 +128,11 @@ public class MAIN {
     }
     
     public static void main(String[] args){
-        //testAvecOthello(8000);
+        //testAvecOthello(10000);
         // Chemin du modèle entraîné pour l'OracleIntelligent
-        String modelPath = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model-oraclepondere-noir.zip";
-        String modelPath1 = "C:\\Users\\chloe\\Desktop\\ProjetOthello\\othello-mlp-model.zip";
-        testAvecOthelloV2(300, modelPath,modelPath1);
+        String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-mlp-model-AvecEntraienmentOPcontreOP-noir-5000.zip";
+        String modelPath1 = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-mlp-model-AvecEntraienmentOPcontreOP-noir-5000.zip";
+        testAvecOthelloV2(5000, modelPath,modelPath1);
     }
 
 }

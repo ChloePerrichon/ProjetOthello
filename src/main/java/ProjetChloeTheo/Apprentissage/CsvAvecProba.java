@@ -62,8 +62,8 @@ public class CsvAvecProba {
     }
     
      public static void main(String[] args) {
-        String inputFilename = "C:\\temp\\noirs10000.csv"; // Chemin du fichier fourni
-        String outputFilename = "C:\\temp\\noirsProba10000.csv"; // Chemin du fichier de sortie
+        String inputFilename = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement\\noirs5000bis.csv"; // Chemin du fichier fourni
+        String outputFilename = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba5000bis.csv"; // Chemin du fichier de sortie
 
         try {
             Map<String, List<Double>> dataMap = readAndProcessCSV(inputFilename);
