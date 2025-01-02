@@ -49,21 +49,25 @@ public class MAIN {
         
         int Quigagne[]= new int[2];
         
+        
         for (int i = 0; i < nbrParties; i++) {
             ResumeResultat resj = jeu.partie(j1,ChoixCoup.ORACLE_MEILLEUR,    // LIGNE POUR MODIFIER LES CHOIX COUPS DES ORACLES
-                    j2, ChoixCoup.ORACLE_PONDERE, false, false, rand,false);  //je joue la partie ici !!!
+                    j2, ChoixCoup.ORACLE_MEILLEUR, false, false, rand,false);  //je joue la partie ici !!!
             // je rejoue la partie pour avoir les situations
             SituationOthello curSit = jeu.situationInitiale();
             Writer curOut = outJ1;
             double curRes;
             if (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) {
                 curRes = 1;
+                System.out.println("Partie " + (i + 1) + ": Les noirs ont gagné");
                 Quigagne[0]++;
             } else if (resj.getStatutFinal() == StatutSituation.BLANC_GAGNE) {
                 curRes = 0;
+                System.out.println("Partie " + (i + 1) + ": Les blancs ont gagné");
                 Quigagne[1]++;
             } else if (resj.getStatutFinal() == StatutSituation.MATCH_NUL) {
                 curRes = 0.5;
+                System.out.println("Partie " + (i + 1) + ": Match nul");
             } else {
                 throw new Error("partie non finie");
             }
@@ -84,8 +88,15 @@ public class MAIN {
                 curJoueur = curJoueur.adversaire();
             }
         }
-        System.out.println("les noirs ont gagne "+Quigagne[0]+" fois");
-        System.out.println("les blancs ont gagne "+Quigagne[1]+" fois");
+        
+        // Affichage des pourcentages de victoire
+        int totalParties = Quigagne[0] + Quigagne[1];
+        double pourcentageNoirs = (double) Quigagne[0] / totalParties * 100;
+        double pourcentageBlancs = (double) Quigagne[1] / totalParties * 100;
+
+        System.out.printf("Les noirs ont gagné %d fois (%.2f%%)\n", Quigagne[0], pourcentageNoirs);
+        System.out.printf("Les blancs ont gagné %d fois (%.2f%%)\n", Quigagne[1], pourcentageBlancs);
+        
     }
 
     public static void creationPartie(
@@ -112,14 +123,27 @@ public class MAIN {
     
      public static void testAvecOthelloV2(int nbr, String modelPath,String modelPath1) {
         try {
+            // Valider le modèle CNN avant de commencer les parties
+            System.out.println("Validation du modèle CNN...");
+            CNNModelValidator.validateModel(modelPath);
             //File dir = new File("C:\\tmp");
             File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement");
             JeuOthello jeu = new JeuOthello();
-            Oracle j1 = new OraclePerceptron(Joueur.NOIR, modelPath);
-            Oracle j2 = new OraclePerceptron(Joueur.BLANC, modelPath1);
+            //System.out.println("Chargement du modèle CNN...");
+            Oracle j1 = new OraclePerceptron(Joueur.NOIR, modelPath, true);
+            //System.out.println("Chargement du modèle Perceptron...");
+            Oracle j2 = new OraclePerceptron(Joueur.BLANC, modelPath1,true);
+            System.out.println("Modèles chargés avec succès.");
             
+           // SituationOthello situationTest = jeu.situationInitiale();
+            //System.out.println("\nTest d'évaluation initiale :");
+           // System.out.println("Évaluation CNN (Noir) : " + j1.evalSituation(situationTest));
+           // System.out.println("Évaluation Perceptron (Blanc) : " + j2.evalSituation(situationTest));
 
-            creationPartie(new File(dir, "noirs" + nbr + "OM-OP.csv"), new File(dir, "blancs" + nbr + "OM-OP.csv"),
+            System.out.println("\nDébut des parties...");
+            creationPartie(
+                    new File(dir, "noirs" + nbr + "OMPER-OMPER.csv"), 
+                    new File(dir, "blancs" + nbr + "OMPER-OMPER.csv"),
                     jeu, j1, j2, nbr, true, false, false, new Random());
             
         } catch (IOException ex) {
@@ -130,9 +154,11 @@ public class MAIN {
     public static void main(String[] args){
         //testAvecOthello(10000);
         // Chemin du modèle entraîné pour l'OracleIntelligent
-        String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-mlp-model-AvecEntraienmentOPcontreOP-noir-5000.zip";
-        String modelPath1 = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-mlp-model-AvecEntraienmentOPcontreOP-noir-5000.zip";
-        testAvecOthelloV2(5000, modelPath,modelPath1);
+        String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-mlp-model-AvecEntraienmentFirstOracleMeilleurcontreOracleAlea-noir-5000.zip";
+        String modelPath1 = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-mlp-model-AvecEntraienmentFirstOracleMeilleurcontreOracleAlea-noir-5000.zip";
+        testAvecOthelloV2(500, modelPath,modelPath1);
     }
+    
+    
 
 }

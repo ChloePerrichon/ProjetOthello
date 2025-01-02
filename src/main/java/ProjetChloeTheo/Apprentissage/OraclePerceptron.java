@@ -20,12 +20,15 @@ public class OraclePerceptron implements Oracle{
     
     private Joueur evaluePour;
     private MultiLayerNetwork model;
+    private boolean afficherPredictions; 
+
     
-    public OraclePerceptron(Joueur evaluePour, String modelPath) throws IOException {
+    public OraclePerceptron(Joueur evaluePour, String modelPath,boolean afficherPredictions) throws IOException {
         // Initialisation de l'oracle avec le joueur pour lequel il évalue
         this.evaluePour = evaluePour;
         // Chargement du modèle de réseau de neurones à partir du fichier
         this.model = MultiLayerNetwork.load(new File(modelPath), true);
+        this.afficherPredictions = afficherPredictions;
     }
 
     @Override
@@ -40,6 +43,11 @@ public class OraclePerceptron implements Oracle{
         double eval =output.getDouble(0);
         if(evaluePour == Joueur.BLANC) {
             eval=1-eval;
+        }
+        
+        // Afficher la prédiction si activé
+        if (afficherPredictions){
+            System.out.printf("Prédiction pour %s : %.2f%% de chances de gagner%n", evaluePour, eval * 100);
         }
 
         // Retourner la prédiction
