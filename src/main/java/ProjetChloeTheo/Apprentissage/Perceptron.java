@@ -68,7 +68,7 @@ public class Perceptron {
             // Création et entraînement du modèle
             model = createModel(seed, learningRate);
 
-            // Ajout d'un listener personnalisé pour suivre la progression
+            // Permet de suivre la progression 
             model.setListeners(new ScoreIterationListener(1) {
                 @Override
                 public void iterationDone(Model model, int iteration, int epoch) {
@@ -234,18 +234,20 @@ public class Perceptron {
     // Fonction de création du modèle de réseau neuronal
     public static MultiLayerNetwork createModel(int seed, double learningRate) {
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
-            .seed(seed)
-            .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-            .updater(new Nesterovs(learningRate, 0.9))
-            .weightInit(WeightInit.XAVIER)
+            .seed(seed) // reproduit les résultats
+            .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)//optimisation
+            .updater(new Nesterovs(learningRate, 0.9)) // mise à jours des poids
+            .weightInit(WeightInit.XAVIER) //initialisation des poids 
             .list()
+            //Première couche cachée
             .layer(new DenseLayer.Builder()
                 .nIn(64) // Nombre d'entrées (64 cases du plateau Othello)
-                .nOut(256)
+                .nOut(256) //256 neuronnes
                 .activation(Activation.RELU)
                 .build())
+            //Deuxième couche cachée
             .layer(new DenseLayer.Builder()
-                .nOut(256)
+                .nOut(256) //256 neuronnes 
                 .activation(Activation.RELU)
                 .build())
             .layer(new OutputLayer.Builder(LossFunctions.LossFunction.MSE) // Utilisation de la MSE pour la régression
@@ -255,20 +257,16 @@ public class Perceptron {
             .build();
 
         MultiLayerNetwork model = new MultiLayerNetwork(conf);
-        model.init();
+        model.init();// initialisation des paramètres du modèle
         model.setListeners(new ScoreIterationListener(10));
 
         return model;
     }
     
-   /* // Fonction d'entraînement du modèle
-    public static void trainModel(MultiLayerNetwork model, DataSetIterator trainIterator,int numEpoque) {
-        System.out.println("Training model...");
-        for (int i = 0; i < numEpoque; i++) { // Nombre d'époques = 30
-            model.fit(trainIterator);
-            System.out.println("Completed epoch " + (i + 1));
-        }
-    }*/
+    
+    
+    
+   
     
     // Fonction d'enregistrement du modèle
     public static void saveModel(MultiLayerNetwork model, String modelPath) throws IOException {
@@ -277,17 +275,17 @@ public class Perceptron {
         System.out.println("Model saved to " + modelPath);
     }
     
-    // Fonction pour charger un modèle enregistré à partir d'un fichier ZIP
+    /*// Fonction pour charger un modèle enregistré à partir d'un fichier ZIP
     public static MultiLayerNetwork loadModel(String modelPath) throws IOException {
         System.out.println("Loading model from: " + modelPath);
         MultiLayerNetwork loadedModel = MultiLayerNetwork.load(new File(modelPath), true);
         System.out.println("Model loaded successfully.");
         return loadedModel;
-    }
+    }*/
     
    
     
-    // Exemple pour utiliser le modèle pour faire une prédiction avec de nouvelles données
+    /*// Exemple pour utiliser le modèle pour faire une prédiction avec de nouvelles données
     public static void makePrediction(MultiLayerNetwork model, INDArray newInput) {
         // Assurez-vous que `newInput` a les bonnes dimensions
         if (newInput.shape()[1] != 64) {
@@ -300,7 +298,7 @@ public class Perceptron {
 
         // Affichage de la prédiction
         System.out.printf("Prédiction: %.2f%%\n", prediction * 100);
-    }
+    }*/
 
     
 }

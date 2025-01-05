@@ -39,35 +39,35 @@ import org.nd4j.evaluation.regression.RegressionEvaluation;
 import org.nd4j.linalg.dataset.SplitTestAndTrain;
 
 public class CNN {
-    private static MultiLayerNetwork model;
+    private static MultiLayerNetwork model; // Déclaration du modèle CNN
     
     public static void main(String[] args) {
         try {
-            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba8000OMCNN-OPPER.csv";
+            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba8000OMCNN-OPPER.csv"; // fichier de données csv
             
             // Paramètres du modèle
-            int seed = 123;
-            double learningRate = 0.001;
-            int numEpochs = 30;
-            int batchSize = 128;  // Ajout de la taille du batch
+            int seed = 123; // nombre de reproductibilité
+            double learningRate = 0.001; // taux d'apprentissage
+            int numEpochs = 30; //nombre d'époque
+            int batchSize = 128;  //  taille du batch
             
-            // Création du dataset
+            // Création du dataset à partir du csv
             DataSet fullDataset = createDataset(csvFilePath);
             System.out.println("Dataset créé avec " + fullDataset.numExamples() + " exemples.");
             
             // Division en ensembles d'entraînement et de test
             DataSet[] splits = splitDataset(fullDataset, 0.8);
             
-            // Création des iterators avec batch
-            DataSetIterator trainIterator = new ListDataSetIterator<>(splits[0].asList(), batchSize);
-            DataSetIterator testIterator = new ListDataSetIterator<>(splits[1].asList(), batchSize);
+            // Création des itérateurs de données 
+            DataSetIterator trainIterator = new ListDataSetIterator<>(splits[0].asList(), batchSize); // données pour l'entrainement
+            DataSetIterator testIterator = new ListDataSetIterator<>(splits[1].asList(), batchSize); // données pour les tests
             
             // Création du modèle
             model = createModel(seed, learningRate);
             
-            // Entraînement du modèle avec batch
+            // Entraînement du modèle 
             System.out.println("Starting training...");
-            trainModelWithBatch(model, trainIterator, numEpochs);
+            trainModel(model, trainIterator, numEpochs);
             
             // Sauvegarde du modèle
             String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn2-model.zip";
@@ -78,21 +78,21 @@ public class CNN {
             evaluateModel(modelPath, testIterator);
             
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); 
         }
     }
     
-    // Nouvelle méthode d'entraînement avec batch
-    private static void trainModelWithBatch(MultiLayerNetwork model, DataSetIterator trainIterator, int numEpochs) {
+    // Entraine le modèle avec des lots de données
+    private static void trainModel(MultiLayerNetwork model, DataSetIterator trainIterator, int numEpochs) {
         for (int epoch = 0; epoch < numEpochs; epoch++) {
-            trainIterator.reset();
+            trainIterator.reset(); // remet à zéro pour chaque époque
             int batchNum = 0;
             while (trainIterator.hasNext()) {
-                DataSet batch = trainIterator.next();
-                model.fit(batch);
+                DataSet batch = trainIterator.next(); // charge le batch
+                model.fit(batch); // entraine le modèle sur le batch
                 if (batchNum % 10 == 0) {
                     System.out.printf("Epoch %d, Batch %d: Score = %.4f%n", 
-                        epoch + 1, batchNum, model.score());
+                        epoch + 1, batchNum, model.score()); // affiche le score tous les 10 batchs
                 }
                 batchNum++;
             }
@@ -109,7 +109,7 @@ public class CNN {
         int totalPredictions = 0;
         int correctPredictions = 0;
         double mseSum = 0.0;
-        double threshold = 0.5;
+        double threshold = 0.5; // seuil de classification
 
         testIterator.reset();
         while (testIterator.hasNext()) {
@@ -121,8 +121,8 @@ public class CNN {
                 features = features.reshape(features.size(0), 1, 8, 8);
             }
             
-            INDArray predictions = model.output(features);
-            eval.eval(labels, predictions);
+            INDArray predictions = model.output(features); // prédictions du modèle
+            eval.eval(labels, predictions); // évaluation des prédictions
             
             for (int i = 0; i < predictions.length(); i++) {
                 totalPredictions++;
@@ -134,15 +134,16 @@ public class CNN {
                     correctPredictions++;
                 }
                 
-                mseSum += Math.pow(predicted - actual, 2);
+                mseSum += Math.pow(predicted - actual, 2); // somme des erreurs quadratiques
             }
         }
         
-        // Calcul et affichage des métriques
+        // Calcul et affichage des métriques de performance
         double accuracy = (double) correctPredictions / totalPredictions * 100;
         double mse = mseSum / totalPredictions;
         double rmse = Math.sqrt(mse);
         
+        // affiche les résultats
         System.out.println("\nRésultats de l'évaluation du modèle CNN :");
         System.out.println("----------------------------------------");
         System.out.printf("Précision de classification : %.2f%% (%d/%d)%n", 
@@ -152,18 +153,9 @@ public class CNN {
         System.out.printf("Coefficient de corrélation : %.4f%n", eval.pearsonCorrelation(0));
         System.out.printf("MAE : %.4f%n", eval.averageMeanAbsoluteError());
         
-        // Recommendations
-        System.out.println("\nRecommandations :");
-        if (accuracy < 60) {
-            System.out.println("- Considérez l'augmentation de la taille du batch");
-            System.out.println("- Ajustez le learning rate");
-        } else if (accuracy > 95) {
-            System.out.println("- Surveillez le surapprentissage");
-            System.out.println("- Vous pouvez essayer de réduire la taille du batch");
-        }
     }
     
-    // Création du dataset spécifique pour CNN (reshape des données en 8x8)
+    // Création du dataset à partir du fichier CSVProba avec des matrices 8x8
     public static DataSet createDataset(String csvFilePath) throws IOException {
         List<INDArray> inputList = new ArrayList<>();
         List<INDArray> outputList = new ArrayList<>();
@@ -172,9 +164,9 @@ public class CNN {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
-                if (values.length != 65) continue;
+                if (values.length != 65) continue; //ignore les lignes qui ont plus de 65 colonnes
                 
-                // Création d'un tableau 8x8x1 pour l'entrée CNN
+                // Création d'un tableau 8x8 pour l'entrée CNN
                 INDArray input = Nd4j.zeros(1, 1, 8, 8);
                 for (int i = 0; i < 64; i++) {
                     int row = i / 8;
@@ -182,7 +174,7 @@ public class CNN {
                     input.putScalar(new int[]{0, 0, row, col}, Double.parseDouble(values[i]));
                 }
                 
-                // Sortie (probabilité de victoire)
+                // Sortie qui correspond à la probabilité
                 INDArray output = Nd4j.zeros(1, 1);
                 output.putScalar(0, Double.parseDouble(values[64]));
                 
@@ -191,13 +183,13 @@ public class CNN {
             }
         }
         
-        // Concaténation des données
-        INDArray input = Nd4j.vstack(inputList);
-        INDArray output = Nd4j.vstack(outputList);
+        
+        INDArray input = Nd4j.vstack(inputList); // concaténation des entrées
+        INDArray output = Nd4j.vstack(outputList); // concaténation des sorties
         
         DataSet dataset = new DataSet(input, output);
         
-        // Normalisation
+        // Normalisation de données
         NormalizerStandardize normalizer = new NormalizerStandardize();
         normalizer.fit(dataset);
         normalizer.transform(dataset);
@@ -205,33 +197,39 @@ public class CNN {
         return dataset;
     }
     
-    // Création du modèle CNN
+    // Création de l'achitecture du modèle CNN
     public static MultiLayerNetwork createModel(int seed, double learningRate) {
+        //Configuration du modèle CNN
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
-            .seed(seed)
-            .weightInit(WeightInit.XAVIER)
-            .updater(new Adam(learningRate))
+            .seed(seed) // reproduit les résultats
+            .weightInit(WeightInit.XAVIER) //initialise les poids
+            .updater(new Adam(learningRate)) // ajuste les poids 
             .list()
+            // première couche de convolution
             .layer(new ConvolutionLayer.Builder(3, 3)
-                .nIn(1)
-                .nOut(64)
+                .nIn(1) // 1 entrée
+                .nOut(64) // 64 filtres
                 .stride(1, 1)
                 .activation(Activation.RELU)
                 .build())
+             //  couche de pooling
             .layer(new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
                 .kernelSize(2, 2)
                 .stride(1, 1)
                 .build())
+             // deuxième couche de convolution
             .layer(new ConvolutionLayer.Builder(2, 2)
                 .nOut(128)
                 .stride(1, 1)
                 .activation(Activation.RELU)
                 .build())
+             // troisième couche de convolution
             .layer(new ConvolutionLayer.Builder(2, 2)
                 .nOut(128)
                 .stride(1, 1)
                 .activation(Activation.RELU)
                 .build())
+             // couche dense
             .layer(new DenseLayer.Builder()
                 .nOut(256)
                 .activation(Activation.RELU)
@@ -242,6 +240,8 @@ public class CNN {
                 .activation(Activation.RELU)
                 .dropOut(0.3)  // Ajout de dropout pour éviter le surapprentissage
                 .build())
+                
+             //couche de sortie   
             .layer(new OutputLayer.Builder(LossFunctions.LossFunction.MSE)
                 .nOut(1)
                 .activation(Activation.IDENTITY)
@@ -250,12 +250,13 @@ public class CNN {
             .build();
         
         MultiLayerNetwork model = new MultiLayerNetwork(conf);
-        model.init();
-        model.setListeners(new ScoreIterationListener(10));
+        model.init(); // intialisation des paramètres du modèle
+        model.setListeners(new ScoreIterationListener(10)); // affiche le score toutes les 10 itérations
         
         return model;
     }
     
+    //methode qui permet de sauvegarder le modèle entrainé
     public static void saveModel(MultiLayerNetwork model, String modelPath) throws IOException {
         System.out.println("Saving the model...");
         ModelSerializer.writeModel(model, new File(modelPath), true);
