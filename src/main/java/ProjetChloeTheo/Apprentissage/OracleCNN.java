@@ -19,24 +19,30 @@ public class OracleCNN implements Oracle {
     private Joueur evaluePour;
     private MultiLayerNetwork model;
     private boolean afficherPredictions;
-
+    
     public OracleCNN(Joueur evaluePour, String modelPath, boolean afficherPredictions) throws IOException {
         this.evaluePour = evaluePour;
         this.model = MultiLayerNetwork.load(new File(modelPath), true);
         this.afficherPredictions = afficherPredictions;
     }
-
+    
     @Override
     public double evalSituation(SituationOthello s) {
-        // Conversion du plateau en format CNN
+        // Conversion du plateau en format CNN (1, 1, 8, 8)
         double[] features = s.getBoardAsArray();
-        INDArray input = Nd4j.create(features).reshape(1, 1, 8, 8);
+        INDArray input = Nd4j.zeros(1, 1, 8, 8);
+        for (int i = 0; i < 64; i++) {
+            int row = i / 8;
+            int col = i % 8;
+            input.putScalar(new int[]{0, 0, row, col}, features[i]);
+        }
         
         // Prédiction
         INDArray output = model.output(input);
         double eval = output.getDouble(0);
         
-        if(evaluePour == Joueur.BLANC) {
+        // Ajustement pour le joueur blanc
+        if (evaluePour == Joueur.BLANC) {
             eval = 1 - eval;
         }
         
@@ -44,28 +50,22 @@ public class OracleCNN implements Oracle {
             System.out.printf("Prédiction CNN pour %s : %.2f%% de chances de gagner%n", 
                 evaluePour, eval * 100);
         }
-
+        
         return eval;
     }
-
     
-
     @Override
     public List<Joueur> joueursCompatibles() {
-        // Liste des joueurs compatibles avec cet oracle
         return List.of(Joueur.NOIR, Joueur.BLANC);
     }
-
+    
     @Override
     public Joueur getEvalueSituationApresCoupDe() {
-        // Retourne le joueur pour lequel l'oracle évalue la situation
         return this.evaluePour;
     }
-
+    
     @Override
     public void setEvalueSituationApresCoupDe(Joueur j) {
-        // Définit le joueur pour lequel l'oracle évalue la situation
         this.evaluePour = j;
     }
-    
 }

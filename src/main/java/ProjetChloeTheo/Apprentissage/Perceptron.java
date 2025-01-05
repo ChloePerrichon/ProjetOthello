@@ -1,31 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package ProjetChloeTheo.Apprentissage;
 
-/**
- *
- * @author chloe
- */
-
-import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
-import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
-import org.deeplearning4j.nn.conf.layers.DenseLayer;
-import org.deeplearning4j.nn.conf.layers.OutputLayer;
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
-import org.nd4j.evaluation.regression.RegressionEvaluation;
-import org.nd4j.linalg.activations.Activation;
-import org.nd4j.linalg.dataset.DataSet;
-import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-import org.nd4j.linalg.learning.config.Nesterovs;
-import org.nd4j.linalg.lossfunctions.LossFunctions;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
-import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -34,23 +8,54 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.deeplearning4j.datasets.iterator.utilty.ListDataSetIterator;
+import org.deeplearning4j.nn.api.Model;
+import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
+import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.util.ModelSerializer;
+import org.nd4j.evaluation.regression.RegressionEvaluation;
+import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.dataset.SplitTestAndTrain;
+import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
+import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.learning.config.Nesterovs;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
+
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+
+/**
+ *
+ * @author chloe
+ */
 public class Perceptron {
     private static MultiLayerNetwork model;
-     
+    
+    
     public static void main(String[] args) {
         try {
-            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement\\noirs5000bis.csv"; // Chemin vers votre fichier CSV
+            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba10000OMPER-OPPER.csv";
 
+            // Création et préparation du dataset
             DataSet dataset = createDataset(csvFilePath);
             System.out.println("Dataset created with " + dataset.numExamples() + " examples.");
 
-            // Split du dataset en ensembles d'entraînement et de test
-            dataset.shuffle();
+            // Split du dataset avec seed pour reproductibilité
+            dataset.shuffle(123);
             int trainSize = (int) (dataset.numExamples() * 0.8);
-            int testSize = dataset.numExamples() - trainSize;
-            DataSet trainData = dataset.splitTestAndTrain(trainSize).getTrain();
-            DataSet testData = dataset.splitTestAndTrain(testSize).getTest();
+            SplitTestAndTrain splits = dataset.splitTestAndTrain(trainSize);
+            DataSet trainData = splits.getTrain();
+            DataSet testData = splits.getTest();
 
             DataSetIterator trainIterator = new ListDataSetIterator<>(trainData.asList(), 128);
             DataSetIterator testIterator = new ListDataSetIterator<>(testData.asList(), 128);
@@ -60,28 +65,104 @@ public class Perceptron {
             double learningRate = 0.001;
             int numEpoque = 30;
 
-            // Création du modèle
+            // Création et entraînement du modèle
             model = createModel(seed, learningRate);
 
-            // Entraînement du modèle
-            trainModel(model, trainIterator,numEpoque);
+            // Ajout d'un listener personnalisé pour suivre la progression
+            model.setListeners(new ScoreIterationListener(1) {
+                @Override
+                public void iterationDone(Model model, int iteration, int epoch) {
+                    if (iteration % 10 == 0) {
+                        double score = model.score();
+                        System.out.printf("Époque %d, Itération %d: Score = %.4f%n", 
+                            epoch, iteration, score);
+                    }
+                }
+            });
 
-            // Enregistrement du modèle
-            saveModel(model, "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-mlp-model-AvecEntraienmentOPcontreOP-noir-5000.zip");
-            
-            // Évaluation du modèle
-            //String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-mlp-model-sansEntraienment-noir.zip";
-            //evaluateModel(modelPath, testIterator);
+            // Entraînement avec évaluation périodique
+            System.out.println("Starting training...");
+            for (int epoch = 0; epoch < numEpoque; epoch++) {
+                model.fit(trainIterator);
 
-            // Exemple de nouvelle entrée pour faire une prédiction
-            //INDArray newInput = Nd4j.create(new double[]{/* valeurs de l'entrée */}, new int[]{1, 64});
-            //makePrediction(model, newInput);
+                // Évaluation sur l'ensemble de test à chaque époque
+                RegressionEvaluation eval = new RegressionEvaluation(1);
+                testIterator.reset();
+                while (testIterator.hasNext()) {
+                    DataSet testSet = testIterator.next();
+                    INDArray predictions = model.output(testSet.getFeatures());
+                    eval.eval(testSet.getLabels(), predictions);
+                }
+
+                System.out.printf("\nÉpoque %d terminée:%n", epoch + 1);
+                System.out.printf("MSE: %.4f%n", eval.averageMeanSquaredError());
+                System.out.printf("MAE: %.4f%n", eval.averageMeanAbsoluteError());
+                System.out.printf("RMSE: %.4f%n", Math.sqrt(eval.averageMeanSquaredError()));
+                System.out.printf("Correlation: %.4f%n", eval.pearsonCorrelation(0));
+
+                // Reset des itérateurs pour la prochaine époque
+                trainIterator.reset();
+                testIterator.reset();
+            }
+
+            // Sauvegarde du modèle
+            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron-model-OMPER-OPPER10000.zip";
+            saveModel(model, modelPath);
+
+            // Évaluation finale du modèle
+            System.out.println("\nÉvaluation finale du modèle:");
+            evaluateModel(modelPath, testIterator);
 
         } catch (IOException | IllegalArgumentException e) {
             e.printStackTrace();
         }
     }
+
+    // Méthode améliorée d'évaluation
+    public static void evaluateModel(String modelPath, DataSetIterator testIterator) throws IOException {
+        MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(modelPath);
+        RegressionEvaluation eval = new RegressionEvaluation();
+
+        // Variables pour le suivi des prédictions
+        int totalPredictions = 0;
+        int correctPredictions = 0;
+        double threshold = 0.5; // Seuil pour classification binaire
+
+        while (testIterator.hasNext()) {
+            DataSet batch = testIterator.next();
+            INDArray features = batch.getFeatures();
+            INDArray labels = batch.getLabels();
+            INDArray predictions = model.output(features);
+
+            // Évaluation des métriques de régression
+            eval.eval(labels, predictions);
+
+            // Calcul de la précision pour la classification
+            for(int i = 0; i < predictions.length(); i++) {
+                totalPredictions++;
+                double predicted = predictions.getDouble(i);
+                double actual = labels.getDouble(i);
+
+                // On considère une prédiction correcte si elle est du bon côté du seuil
+                if((predicted >= threshold && actual >= threshold) ||
+                   (predicted < threshold && actual < threshold)) {
+                    correctPredictions++;
+                }
+            }
+        }
+
+        // Affichage des résultats détaillés
+        System.out.println("\nRésultats de l'évaluation:");
+        System.out.println(eval.stats());
+        System.out.printf("Précision de classification: %.2f%% (%d/%d)%n", 
+            (100.0 * correctPredictions / totalPredictions),
+            correctPredictions, totalPredictions);
+    }
+
+
+
      
+
     // Fonction de création du dataset à partir d'un fichier CSV
     public static DataSet createDataset(String csvFilePath) throws IOException {
         List<INDArray> inputList = new ArrayList<>();
@@ -180,14 +261,14 @@ public class Perceptron {
         return model;
     }
     
-    // Fonction d'entraînement du modèle
+   /* // Fonction d'entraînement du modèle
     public static void trainModel(MultiLayerNetwork model, DataSetIterator trainIterator,int numEpoque) {
         System.out.println("Training model...");
         for (int i = 0; i < numEpoque; i++) { // Nombre d'époques = 30
             model.fit(trainIterator);
             System.out.println("Completed epoch " + (i + 1));
         }
-    }
+    }*/
     
     // Fonction d'enregistrement du modèle
     public static void saveModel(MultiLayerNetwork model, String modelPath) throws IOException {
@@ -204,24 +285,7 @@ public class Perceptron {
         return loadedModel;
     }
     
-    // Fonction d'évaluation du modèle
-    public static void evaluateModel(String modelPath, DataSetIterator testIterator) throws IOException {
-        // Charger le modèle à partir du fichier donné (par son chemin)
-        MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(modelPath);
-        System.out.println("Evaluating model...");
-        // Créer une instance d'évaluation
-        RegressionEvaluation eval = new RegressionEvaluation();
-        // Parcourir les données de test pour faire des prédictions et évaluer le modèle
-        while (testIterator.hasNext()) {
-            DataSet t = testIterator.next();
-            INDArray features = t.getFeatures();
-            INDArray labels = t.getLabels();
-            INDArray predicted = model.output(features, false);  // Obtenez les prédictions du modèle
-            eval.eval(labels, predicted);  // Comparez les prédictions aux labels réels
-        }
-        // Afficher les résultats d'évaluation
-        System.out.println(eval.stats());
-    }
+   
     
     // Exemple pour utiliser le modèle pour faire une prédiction avec de nouvelles données
     public static void makePrediction(MultiLayerNetwork model, INDArray newInput) {
@@ -237,6 +301,7 @@ public class Perceptron {
         // Affichage de la prédiction
         System.out.printf("Prédiction: %.2f%%\n", prediction * 100);
     }
-}
+
     
+}
 

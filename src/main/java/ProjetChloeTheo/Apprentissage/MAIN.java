@@ -22,7 +22,11 @@ import org.nd4j.linalg.dataset.DataSet;
  * @author francois
  */
 public class MAIN {
-
+    
+    
+    
+    //Génère une ligne CSV pour une situation donnée
+    
     private static void generateUneLigneCSVOfSituations(
             Writer curWriter,
             SituationOthello curSit, double res, int numCoup, int totCoup,
@@ -39,21 +43,24 @@ public class MAIN {
         }
         curWriter.append("\n");
     }
-
-    public static void generateCSVOfSituations(         //méthode qui crée les lignes du CSV une par une
+    
+    
+    
+    // Génère le CSV pour les situations de jeu
+    
+    public static void generateCSVOfSituations(         
             Writer outJ1, Writer outJ2,
             JeuOthello jeu, Oracle j1, Oracle j2,
             int nbrParties,
             boolean includeRes, boolean includeNumCoup, boolean includeTotCoup,
             Random rand) throws IOException {
         
-        int Quigagne[]= new int[2];
+        int Quigagne[]= new int[2]; //[0] pour noir, [1] pour blanc
         
         
         for (int i = 0; i < nbrParties; i++) {
             ResumeResultat resj = jeu.partie(j1,ChoixCoup.ORACLE_MEILLEUR,    // LIGNE POUR MODIFIER LES CHOIX COUPS DES ORACLES
-                    j2, ChoixCoup.ORACLE_MEILLEUR, false, false, rand,false);  //je joue la partie ici !!!
-            // je rejoue la partie pour avoir les situations
+                    j2, ChoixCoup.ORACLE_PONDERE, false, false, rand,false);  
             SituationOthello curSit = jeu.situationInitiale();
             Writer curOut = outJ1;
             double curRes;
@@ -98,7 +105,8 @@ public class MAIN {
         System.out.printf("Les blancs ont gagné %d fois (%.2f%%)\n", Quigagne[1], pourcentageBlancs);
         
     }
-
+    
+    // Crée le fichier csv pour une série de parties
     public static void creationPartie(
             File outJ1, File outJ2,
             JeuOthello jeu, Oracle j1, Oracle j2,
@@ -109,7 +117,8 @@ public class MAIN {
             generateCSVOfSituations(wJ1, wJ2, jeu, j1, j2, nbrParties, includeRes, includeNumCoup, includeTotCoup,rand);
         }
     }
-
+    
+    // Test de base avec les oracles stupides
     public static void testAvecOthello(int nbr) {
         try {
             File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvSansEntrainement"); //attention je crois que sur l'ordi de chloe c'est temp
@@ -121,42 +130,47 @@ public class MAIN {
         }
     }
     
+    //Test avec les oracles intelligents et création des fichiers csv normal et avec proba
      public static void testAvecOthelloV2(int nbr, String modelPath,String modelPath1) {
         try {
-            // Valider le modèle CNN avant de commencer les parties
-            System.out.println("Validation du modèle CNN...");
-            CNNModelValidator.validateModel(modelPath);
-            //File dir = new File("C:\\tmp");
+           
             File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement");
-            JeuOthello jeu = new JeuOthello();
-            //System.out.println("Chargement du modèle CNN...");
-            Oracle j1 = new OraclePerceptron(Joueur.NOIR, modelPath, true);
-            //System.out.println("Chargement du modèle Perceptron...");
-            Oracle j2 = new OraclePerceptron(Joueur.BLANC, modelPath1,true);
-            System.out.println("Modèles chargés avec succès.");
             
-           // SituationOthello situationTest = jeu.situationInitiale();
-            //System.out.println("\nTest d'évaluation initiale :");
-           // System.out.println("Évaluation CNN (Noir) : " + j1.evalSituation(situationTest));
-           // System.out.println("Évaluation Perceptron (Blanc) : " + j2.evalSituation(situationTest));
-
+            // Création des parties et générations du csv normal
+            JeuOthello jeu = new JeuOthello();            
+            Oracle j1 = new OracleCNN(Joueur.NOIR, modelPath, true);
+            Oracle j2 = new OraclePerceptron(Joueur.BLANC, modelPath1,true);
+            
+            System.out.println("Modèles chargés avec succès.");
             System.out.println("\nDébut des parties...");
+            
             creationPartie(
-                    new File(dir, "noirs" + nbr + "OMPER-OMPER.csv"), 
-                    new File(dir, "blancs" + nbr + "OMPER-OMPER.csv"),
+                    new File(dir, "noirs" + nbr + "OMCNN-OPPER.csv"), 
+                    new File(dir, "blancs" + nbr + "OMCNN-OPPER.csv"),
                     jeu, j1, j2, nbr, true, false, false, new Random());
+            
+            System.out.println("Création du fichier csv avec proba ...");
+            // Création du fichier csv avec proba
+            String inputFile = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement\\noirs" + nbr + "OMCNN-OPPER.csv";
+            String outputFile = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba" + nbr + "OMCNN-OPPER.csv";
+            CsvAvecProba.createCsvProba(inputFile, outputFile);
+            
             
         } catch (IOException ex) {
             throw new Error(ex);
         }
     }
     
+        
+    
     public static void main(String[] args){
         //testAvecOthello(10000);
+        //CNNModelValidator.validateModel(modelPath);
         // Chemin du modèle entraîné pour l'OracleIntelligent
-        String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-mlp-model-AvecEntraienmentFirstOracleMeilleurcontreOracleAlea-noir-5000.zip";
-        String modelPath1 = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-mlp-model-AvecEntraienmentFirstOracleMeilleurcontreOracleAlea-noir-5000.zip";
-        testAvecOthelloV2(500, modelPath,modelPath1);
+        String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn-model.zip";
+        String modelPath1 = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron-model-OMPER-OPPER.zip";
+        //Lancement du test
+        testAvecOthelloV2(8000, modelPath,modelPath1);
     }
     
     

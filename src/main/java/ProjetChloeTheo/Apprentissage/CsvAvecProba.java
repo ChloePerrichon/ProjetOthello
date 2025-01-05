@@ -17,7 +17,11 @@ import java.util.Map;
  *
  * @author chloe
  */
+
+
+
 public class CsvAvecProba {
+    
     private static Map<String, List<Double>> readAndProcessCSV(String filename) throws IOException {
         Map<String, List<Double>> dataMap = new HashMap<>();
         BufferedReader br = new BufferedReader(new FileReader(filename));
@@ -61,17 +65,26 @@ public class CsvAvecProba {
         writer.close();
     }
     
-     public static void main(String[] args) {
-        String inputFilename = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement\\noirs5000bis.csv"; // Chemin du fichier fourni
-        String outputFilename = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba5000bis.csv"; // Chemin du fichier de sortie
-
+    // Méthode pour créer le csv avec proba
+    public static void createCsvProba(String inputFilename, String outputFilename) throws IOException {
         try {
             Map<String, List<Double>> dataMap = readAndProcessCSV(inputFilename);
             writeAveragedDataToCSV(dataMap, outputFilename);
             System.out.println("Processing completed. Averaged data written to " + outputFilename);
         } catch (IOException e) {
             System.err.println("An error occurred while processing the CSV files: " + e.getMessage());
+            throw e;  
         }
     }
     
+     public static void main(String[] args) {
+        String inputFilename = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement\\noirs10000OMPER-OPPER.csv";
+        String outputFilename = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba10000OMPER-OPPER.csv";
+
+        try {
+            createCsvProba(inputFilename, outputFilename);
+        } catch (IOException e) {
+            System.err.println("An error occurred while processing the CSV files: " + e.getMessage());
+        }
+    }
 }
