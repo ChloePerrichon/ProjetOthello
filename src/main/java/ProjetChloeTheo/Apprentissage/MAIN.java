@@ -468,8 +468,14 @@ public class MAIN {
         String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron-model-OMPER-OPPER.zip";
 
         // Test CNN vs Perceptron
-        testAvecOthelloV3(300, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON);
+        //testAvecOthelloV3(300, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON);
+        // Test CNN vs CNN
+        //System.out.println("\n=== Test CNN vs CNN ===");
+        //testAvecOthelloV3(100, modelPathCNN, modelPathCNN, ModelType.CNN, ModelType.CNN);
 
+        // Test CNN vs Perceptron avec couleurs inversées
+        //System.out.println("\n=== Test Perceptron (Noir) vs CNN (Blanc) ===");
+        testAvecOthelloV3(100, modelPathPerceptron, modelPathCNN, ModelType.PERCEPTRON, ModelType.CNN);
         // Ou CNN vs CNN
         // testAvecOthelloV3(300, modelPathCNN, modelPathCNN, ModelType.CNN, ModelType.CNN);
 
