@@ -4,6 +4,16 @@
  */
 package ProjetChloeTheo.Apprentissage;
 
+import ProjetChloeTheo.Apprentissage.config_Othello.JeuOthello;
+import ProjetChloeTheo.Apprentissage.config_Othello.CoupOthello;
+import ProjetChloeTheo.Apprentissage.config_Othello.ResumeResultat;
+import ProjetChloeTheo.Apprentissage.config_Othello.ChoixCoup;
+import ProjetChloeTheo.Apprentissage.config_Othello.Joueur;
+import ProjetChloeTheo.Apprentissage.config_Othello.StatutSituation;
+import ProjetChloeTheo.Apprentissage.config_Othello.SituationOthello;
+import ProjetChloeTheo.Apprentissage.oracles.OracleStupide;
+import ProjetChloeTheo.Apprentissage.oracles.Oracle;
+import ProjetChloeTheo.Apprentissage.oracles.OracleCNN;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;
