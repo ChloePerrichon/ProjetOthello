@@ -1,4 +1,4 @@
-package ProjetChloeTheo.Apprentissage;
+package ProjetChloeTheo.Apprentissage.modeles;
 
 
 import java.io.BufferedReader;

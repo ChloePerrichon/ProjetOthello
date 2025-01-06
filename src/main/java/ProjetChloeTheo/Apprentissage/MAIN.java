@@ -14,6 +14,7 @@ import ProjetChloeTheo.Apprentissage.config_Othello.SituationOthello;
 import ProjetChloeTheo.Apprentissage.oracles.OracleStupide;
 import ProjetChloeTheo.Apprentissage.oracles.Oracle;
 import ProjetChloeTheo.Apprentissage.oracles.OracleCNN;
+import ProjetChloeTheo.Apprentissage.oracles.OraclePerceptron;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.api.ndarray.INDArray;

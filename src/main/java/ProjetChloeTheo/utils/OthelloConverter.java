@@ -8,7 +8,7 @@ package ProjetChloeTheo.utils;
  *
  * @author toliveiragaspa01
  */
-import ProjetChloeTheo.Apprentissage.CoupOthello;
+import ProjetChloeTheo.Apprentissage.config_Othello.CoupOthello;
 import java.util.*;
 
 

@@ -6,8 +6,10 @@
  *
  * @author cperrichon01
  */
-package ProjetChloeTheo.Apprentissage;
+package ProjetChloeTheo.Apprentissage.oracles;
 
+import ProjetChloeTheo.Apprentissage.config_Othello.Joueur;
+import ProjetChloeTheo.Apprentissage.config_Othello.SituationOthello;
 import java.util.*;
 
 public class OracleIntelligent implements Oracle {

@@ -16,41 +16,25 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ProjetChloeTheo.Apprentissage;
-
-import java.util.List;
+package ProjetChloeTheo.Apprentissage.config_Othello;
 
 /**
+ * Represente l'état courant d'une partie.
+ * <p>
+ * plusieurs états possibles :
+ * <ul>
+ * <li> la partie n'est pas terminée : statut = ENCOURS ; gagnant est empty <li>
+ * <li> la partie est terminée ; statut = FINIE. Dans ce cas plusieurs cas
+ * possibles :
+ * <ul>
+ * <li> un des joueurs à gagné : gagnant contient le joueur gagnant</li>
+ * <li> c'est un match nul : gagnant est empty</li>
+ * </ul>
+ * </li>
+ * </ul>
  *
  * @author francois
  */
-public class OracleStupide implements Oracle{
-    
-    private Joueur evaluePour;
-    
-    public OracleStupide(Joueur evaluePour) {
-        //super(List.of(Joueur.NOIR,Joueur.BLANC), evaluePour);
-        this.evaluePour = evaluePour;
-    }
-
-    @Override
-    public double evalSituation(SituationOthello s) {
-        return 0.5;
-    }
-
-    @Override
-    public List<Joueur> joueursCompatibles() {
-        return List.of(Joueur.NOIR,Joueur.BLANC);
-    }
-
-    @Override
-    public Joueur getEvalueSituationApresCoupDe() {
-        return this.evaluePour;
-    }
-
-    @Override
-    public void setEvalueSituationApresCoupDe(Joueur j) {
-        this.evaluePour = j;
-    }
-    
+public enum StatutSituation {
+    ENCOURS,MATCH_NUL,NOIR_GAGNE,BLANC_GAGNE;
 }

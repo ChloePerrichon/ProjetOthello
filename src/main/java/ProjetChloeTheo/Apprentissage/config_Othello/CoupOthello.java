@@ -16,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with CoursBeuvron.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ProjetChloeTheo.Apprentissage;
+package ProjetChloeTheo.Apprentissage.config_Othello;
 
 import ProjetChloeTheo.configuration_jeu_othello.Position;
 import java.util.Optional;

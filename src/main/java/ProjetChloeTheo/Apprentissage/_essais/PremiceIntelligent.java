@@ -2,8 +2,12 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package ProjetChloeTheo.Apprentissage;
+package ProjetChloeTheo.Apprentissage._essais;
 
+import ProjetChloeTheo.Apprentissage.config_Othello.CoupOthello;
+import ProjetChloeTheo.Apprentissage.config_Othello.JeuOthello;
+import ProjetChloeTheo.Apprentissage.config_Othello.Joueur;
+import ProjetChloeTheo.Apprentissage.config_Othello.SituationOthello;
 import ProjetChloeTheo.configuration_jeu_othello.Damier;
 import ProjetChloeTheo.utils.OthelloConverter;
 import java.io.BufferedReader;

@@ -2,13 +2,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package ProjetChloeTheo.Apprentissage;
+package ProjetChloeTheo.Apprentissage.oracles;
 
 /**
  *
  * @author chloe
  */
 
+import ProjetChloeTheo.Apprentissage.config_Othello.Joueur;
+import ProjetChloeTheo.Apprentissage.config_Othello.SituationOthello;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
