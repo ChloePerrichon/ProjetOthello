@@ -24,7 +24,23 @@ import org.nd4j.linalg.dataset.DataSet;
  */
 public class MAIN {
     
+    // Ajoutez cette énumération en haut de la classe MAIN pour définir les types de modèles
+    public enum ModelType {
+        PERCEPTRON,
+        CNN
+    }
     
+    // Méthode modifiée pour créer l'oracle approprié selon le type
+    private static Oracle createOracle(Joueur joueur, String modelPath, ModelType modelType) throws IOException {
+        switch (modelType) {
+            case PERCEPTRON:
+                return new OraclePerceptron(joueur, modelPath, true);
+            case CNN:
+                return new OracleCNN(joueur, modelPath, true);
+            default:
+                throw new IllegalArgumentException("Type de modèle non supporté");
+        }
+    }
     
     //Génère une ligne CSV pour une situation donnée
     
@@ -61,7 +77,7 @@ public class MAIN {
         
         for (int i = 0; i < nbrParties; i++) {
             ResumeResultat resj = jeu.partie(j1,ChoixCoup.ORACLE_MEILLEUR,    // LIGNE POUR MODIFIER LES CHOIX COUPS DES ORACLES
-                    j2, ChoixCoup.ORACLE_PONDERE, false, false, rand,false);  
+                    j2, ChoixCoup.ORACLE_MEILLEUR, false, false, rand,false);  
             SituationOthello curSit = jeu.situationInitiale();
             Writer curOut = outJ1;
             double curRes;
@@ -164,13 +180,13 @@ public class MAIN {
         return System.currentTimeMillis() - startTime;
     }
     
-     // test avec parallélisation
+    /* // test avec parallélisation
     public static long testAvecOthelloV3(int nbrParties, String modelPath, String modelPath1) {
         long startTime = System.currentTimeMillis();
         try {
         File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement");
-        File fileJ1 = new File(dir, "noirs" + nbrParties + "OMCNN-OMCNN2.csv");
-        File fileJ2 = new File(dir, "blancs" + nbrParties + "OMCNN-OMCNN2.csv");
+        File fileJ1 = new File(dir, "noirs" + nbrParties + "OMCNN2-OMCNN.csv");
+        File fileJ2 = new File(dir, "blancs" + nbrParties + "OMCNN2-OMCNN.csv");
         
         // Création des parties et générations du csv normal
         JeuOthello jeu = new JeuOthello();            
@@ -265,8 +281,113 @@ public class MAIN {
 
         System.out.println("Création du fichier csv avec proba ...");
         // Création du fichier csv avec proba
-        String inputFile = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement\\noirs" + nbrParties + "OMCNN-OMCNN2.csv";
-        String outputFile = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba" + nbrParties + "OOMCNN-OMCNN2.csv";
+        String inputFile = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement\\noirs" + nbrParties + "OMCNN2-OMCNN.csv";
+        String outputFile = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba" + nbrParties + "OMCNN2-OMCNN.csv";
+        CsvAvecProba.createCsvProba(inputFile, outputFile);
+        
+    } catch (IOException | InterruptedException ex) {
+        throw new Error(ex);
+    }
+    return System.currentTimeMillis() - startTime;
+}*/
+    
+    public static long testAvecOthelloV3(int nbrParties, String modelPath1, String modelPath2, 
+                                   ModelType typeJ1, ModelType typeJ2) {
+    long startTime = System.currentTimeMillis();
+    try {
+        File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement");
+        String modelDesc = String.format("%s-%s", typeJ1.toString(), typeJ2.toString());
+        File fileJ1 = new File(dir, "noirs" + nbrParties + modelDesc + ".csv");
+        File fileJ2 = new File(dir, "blancs" + nbrParties + modelDesc + ".csv");
+        
+        // Création des oracles selon leur type
+        JeuOthello jeu = new JeuOthello();            
+        Oracle j1 = createOracle(Joueur.NOIR, modelPath1, typeJ1);
+        Oracle j2 = createOracle(Joueur.BLANC, modelPath2, typeJ2);
+        
+        System.out.println("Modèles chargés avec succès.");
+        System.out.println("Type joueur 1: " + typeJ1);
+        System.out.println("Type joueur 2: " + typeJ2);
+        System.out.println("\nDébut des parties...");
+
+        // Création des writers avec synchronisation
+        FileWriter wJ1 = new FileWriter(fileJ1);
+        FileWriter wJ2 = new FileWriter(fileJ2);
+        Object writerLock = new Object();
+        int[] victoires = new int[2];
+
+        int nbrThreads = Runtime.getRuntime().availableProcessors();
+        int partiesParThread = nbrParties / nbrThreads;
+        
+        List<Thread> threads = new ArrayList<>();
+        for (int i = 0; i < nbrThreads; i++) {
+            final int threadIndex = i;
+            Thread t = new Thread(() -> {
+                int debut = threadIndex * partiesParThread;
+                int fin = (threadIndex == nbrThreads - 1) ? nbrParties : debut + partiesParThread;
+                
+                for (int p = debut; p < fin; p++) {
+                    try {
+                        ResumeResultat resj = jeu.partie(j1, ChoixCoup.ORACLE_MEILLEUR,
+                                j2, ChoixCoup.ORACLE_MEILLEUR, false, false, new Random(), false);
+                        
+                        synchronized (victoires) {
+                            if (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) {
+                                victoires[0]++;
+                                System.out.println("Partie " + (p + 1) + ": Les noirs ont gagné");
+                            } else if (resj.getStatutFinal() == StatutSituation.BLANC_GAGNE) {
+                                victoires[1]++;
+                                System.out.println("Partie " + (p + 1) + ": Les blancs ont gagné");
+                            } else {
+                                System.out.println("Partie " + (p + 1) + ": Match nul");
+                            }
+                        }
+
+                        synchronized (writerLock) {
+                            SituationOthello curSit = jeu.situationInitiale();
+                            Writer curOut = wJ1;
+                            double curRes = (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) ? 1.0 :
+                                          (resj.getStatutFinal() == StatutSituation.BLANC_GAGNE) ? 0.0 : 0.5;
+                            
+                            generateUneLigneCSVOfSituations(curOut, curSit, curRes, 0, 
+                                    resj.getCoupsJoues().size(), true, false, false);
+                            
+                            Joueur curJoueur = Joueur.NOIR;
+                            for (CoupOthello curCoup : resj.getCoupsJoues()) {
+                                curSit = jeu.updateSituation(curSit, curJoueur, curCoup);
+                                curOut = (curOut == wJ1) ? wJ2 : wJ1;
+                                curRes = 1 - curRes;
+                                generateUneLigneCSVOfSituations(curOut, curSit, curRes, 0,
+                                        resj.getCoupsJoues().size(), true, false, false);
+                                curJoueur = curJoueur.adversaire();
+                            }
+                        }
+                    } catch (IOException e) {
+                        System.err.println("Erreur lors de l'écriture pour la partie " + p + ": " + e.getMessage());
+                    }
+                }
+            });
+            threads.add(t);
+            t.start();
+        }
+
+        for (Thread t : threads) {
+            t.join();
+        }
+
+        wJ1.close();
+        wJ2.close();
+
+        int totalParties = victoires[0] + victoires[1];
+        double pourcentageNoirs = (double) victoires[0] / totalParties * 100;
+        double pourcentageBlancs = (double) victoires[1] / totalParties * 100;
+        System.out.printf("Les noirs ont gagné %d fois (%.2f%%)\n", victoires[0], pourcentageNoirs);
+        System.out.printf("Les blancs ont gagné %d fois (%.2f%%)\n", victoires[1], pourcentageBlancs);
+
+        System.out.println("Création du fichier csv avec proba ...");
+        String inputFile = fileJ1.getPath();
+        String outputFile = inputFile.replace("CsvAvecEntrainement", "CsvAvecEntrainementProba")
+                                  .replace("noirs", "noirsProba");
         CsvAvecProba.createCsvProba(inputFile, outputFile);
         
     } catch (IOException | InterruptedException ex) {
@@ -274,25 +395,31 @@ public class MAIN {
     }
     return System.currentTimeMillis() - startTime;
 }
+   
+
+   
+
     
-    // Méthode pour comparer les performances
-    public static void comparePerformance(int nbr, String modelPath, String modelPath1) {
+        public static void comparePerformance(int nbr, String modelPath, String modelPath1, ModelType type1, ModelType type2) {
         System.out.println("Début des tests de performance pour " + nbr + " parties");
         System.out.println("=============================================");
 
         // Test de la version séquentielle
         System.out.println("\nExécution de la version séquentielle...");
+        System.out.println("Configuration: " + type1 + " vs " + type2);
         long seqTime = testAvecOthelloV2(nbr, modelPath, modelPath1);
-        
+
         // Petit délai pour laisser le système se reposer
         try {
             Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         // Test de la version parallèle
         System.out.println("\nExécution de la version parallèle...");
-        long parTime = testAvecOthelloV3(nbr, modelPath, modelPath1);
+        System.out.println("Configuration: " + type1 + " vs " + type2);
+        long parTime = testAvecOthelloV3(nbr, modelPath, modelPath1, type1, type2);
 
         // Affichage des résultats
         System.out.println("\nRésultats de la comparaison:");
@@ -305,23 +432,38 @@ public class MAIN {
     }
         
     
-    public static void main(String[] args){
+    /*public static void main(String[] args){
         //testAvecOthello(10000);
         
         // Chemin du modèle entraîné pour l'OracleIntelligent
         String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn2-model.zip";
         String modelPath1 = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn-model.zip";
-        //String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron-model-OMPER-OPPER.zip";
+        ///String modelPath1 = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron-model-OMPER-OPPER.zip";
         
         
         //Lancement du test
-        testAvecOthelloV3(200, modelPath,modelPath1);
+        testAvecOthelloV3(300, modelPath,modelPath1);
         
          // Nombre de parties pour le test
         //int nbrParties = 100; // Vous pouvez ajuster ce nombre
         
         // Lancer la comparaison
         //comparePerformance(nbrParties, modelPath, modelPath1);
+    }*/
+    
+    // Exemple d'utilisation dans le main
+    public static void main(String[] args) {
+        String modelPathCNN = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn2-model.zip";
+        String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron-model-OMPER-OPPER.zip";
+
+        // Test CNN vs Perceptron
+        testAvecOthelloV3(300, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON);
+
+        // Ou CNN vs CNN
+        // testAvecOthelloV3(300, modelPathCNN, modelPathCNN, ModelType.CNN, ModelType.CNN);
+
+        // Ou Perceptron vs Perceptron
+        // testAvecOthelloV3(300, modelPathPerceptron, modelPathPerceptron, ModelType.PERCEPTRON, ModelType.PERCEPTRON);
     }
     
     
