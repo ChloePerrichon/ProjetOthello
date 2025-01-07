@@ -3,13 +3,12 @@ package ProjetChloeTheo.Apprentissage.database;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.FileWriter;
 
 public class DataBaseEnvironment {
     // Attributs nécessaires pour la connexion à la base de données
-    private static final String URL = "jdbc:mysql://localhost:3306/ma_bdd"; // Remplace avec l'URL de ta base
-    private static final String USERNAME = "ton_username";      // Remplace avec ton nom d'utilisateur
-    private static final String PASSWORD = "ton_mot_de_passe";  // Remplace avec ton mot de passe
+    private static final String URL = "jdbc:mysql://92.222.25.165:3306/m3_toliveiragaspar01"; //potentiellement rajouté : ?useSSL=false&serverTimeZone=UTC*
+    private static final String USERNAME = "m3_toliveiragaspar01";
+    private static final String PASSWORD = "";
     private static Connection connection;
 
     // Connexion à la base de données

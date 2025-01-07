@@ -190,6 +190,7 @@ public class JeuOthello {
                         
                         List<Double> evalsInverse = evals.stream().map(x -> 1-x).toList(); // ça crée une list "evals" du pdv du curJoueur, donc ici on va chercehr le max pour meilleur coup
                         // ==> [0.8,0.3,0.4,0.9]
+                        evalsInverse = evalsInverse.stream().map(x -> x*x). toList();
                         
                         // ensuite choix pondéré ==> il aura 2 fois plus de chance de choisir le premier coup que le troisième
                         // également 3 fois plus de chance de choisir le quatrieme coup que le deuxième
