@@ -43,7 +43,7 @@ public class CNN {
     
     public static void main(String[] args) {
         try {
-            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba8000OMCNN-OPPER.csv"; // fichier de données csv
+            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba10000OMPER-OPPER.csv"; // fichier de données csv
             
             // Paramètres du modèle
             int seed = 123; // nombre de reproductibilité
@@ -110,7 +110,8 @@ public class CNN {
         int correctPredictions = 0;
         double mseSum = 0.0;
         double threshold = 0.5; // seuil de classification
-
+        
+        
         testIterator.reset();
         while (testIterator.hasNext()) {
             DataSet batch = testIterator.next();
@@ -142,6 +143,7 @@ public class CNN {
         double accuracy = (double) correctPredictions / totalPredictions * 100;
         double mse = mseSum / totalPredictions;
         double rmse = Math.sqrt(mse);
+        
         
         // affiche les résultats
         System.out.println("\nRésultats de l'évaluation du modèle CNN :");
@@ -187,12 +189,16 @@ public class CNN {
         INDArray input = Nd4j.vstack(inputList); // concaténation des entrées
         INDArray output = Nd4j.vstack(outputList); // concaténation des sorties
         
-        DataSet dataset = new DataSet(input, output);
+        //DataSet dataset = new DataSet(input, output);
         
-        // Normalisation de données
+        double min = input.minNumber().doubleValue();
+        double max = input.maxNumber().doubleValue();
+        input = input.sub(min).div(max - min);
+        DataSet dataset = new DataSet(input, output);
+        /*// Normalisation de données
         NormalizerStandardize normalizer = new NormalizerStandardize();
         normalizer.fit(dataset);
-        normalizer.transform(dataset);
+        normalizer.transform(dataset);*/
         
         return dataset;
     }

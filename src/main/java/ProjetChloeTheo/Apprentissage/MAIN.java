@@ -190,159 +190,53 @@ public class MAIN {
         }
         return System.currentTimeMillis() - startTime;
     }
+     
+   
     
-    /* // test avec parallélisation
-    public static long testAvecOthelloV3(int nbrParties, String modelPath, String modelPath1) {
-        long startTime = System.currentTimeMillis();
-        try {
-        File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement");
-        File fileJ1 = new File(dir, "noirs" + nbrParties + "OMCNN2-OMCNN.csv");
-        File fileJ2 = new File(dir, "blancs" + nbrParties + "OMCNN2-OMCNN.csv");
-        
-        // Création des parties et générations du csv normal
-        JeuOthello jeu = new JeuOthello();            
-        Oracle j1 = new OracleCNN(Joueur.NOIR, modelPath, true);
-        Oracle j2 = new OracleCNN(Joueur.BLANC, modelPath1, true);
-        
-        System.out.println("Modèles chargés avec succès.");
-        System.out.println("\nDébut des parties...");
-
-        // Création des writers avec synchronisation
-        FileWriter wJ1 = new FileWriter(fileJ1);
-        FileWriter wJ2 = new FileWriter(fileJ2);
-        Object writerLock = new Object(); // Pour synchroniser l'écriture
-        int[] victoires = new int[2]; // Pour compter les victoires [0]=noir, [1]=blanc
-
-        // Nombre de threads à utiliser
-        int nbrThreads = Runtime.getRuntime().availableProcessors();
-        int partiesParThread = nbrParties / nbrThreads;
-        
-        // Création et démarrage des threads
-        List<Thread> threads = new ArrayList<>();
-        for (int i = 0; i < nbrThreads; i++) {
-            final int threadIndex = i;
-            Thread t = new Thread(() -> {
-                int debut = threadIndex * partiesParThread;
-                int fin = (threadIndex == nbrThreads - 1) ? nbrParties : debut + partiesParThread;
-                
-                for (int p = debut; p < fin; p++) {
-                    try {
-                        ResumeResultat resj = jeu.partie(j1, ChoixCoup.ORACLE_MEILLEUR,
-                                j2, ChoixCoup.ORACLE_PONDERE, false, false, new Random(), false);
-                        
-                        // Traitement du résultat
-                        synchronized (victoires) {
-                            if (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) {
-                                victoires[0]++;
-                                System.out.println("Partie " + (p + 1) + ": Les noirs ont gagné");
-                            } else if (resj.getStatutFinal() == StatutSituation.BLANC_GAGNE) {
-                                victoires[1]++;
-                                System.out.println("Partie " + (p + 1) + ": Les blancs ont gagné");
-                            } else {
-                                System.out.println("Partie " + (p + 1) + ": Match nul");
-                            }
-                        }
-
-                        // Écriture synchronisée dans les fichiers CSV
-                        synchronized (writerLock) {
-                            SituationOthello curSit = jeu.situationInitiale();
-                            Writer curOut = wJ1;
-                            double curRes = (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) ? 1.0 :
-                                          (resj.getStatutFinal() == StatutSituation.BLANC_GAGNE) ? 0.0 : 0.5;
-                            
-                            generateUneLigneCSVOfSituations(curOut, curSit, curRes, 0, 
-                                    resj.getCoupsJoues().size(), true, false, false);
-                            
-                            Joueur curJoueur = Joueur.NOIR;
-                            int numCoup = 0;
-                            for (CoupOthello curCoup : resj.getCoupsJoues()) {
-                                curSit = jeu.updateSituation(curSit, curJoueur, curCoup);
-                                curOut = (curOut == wJ1) ? wJ2 : wJ1;
-                                curRes = 1 - curRes;
-                                numCoup++;
-                                generateUneLigneCSVOfSituations(curOut, curSit, curRes, numCoup,
-                                        resj.getCoupsJoues().size(), true, false, false);
-                                curJoueur = curJoueur.adversaire();
-                            }
-                        }
-                    } catch (IOException e) {
-                        System.err.println("Erreur lors de l'écriture pour la partie " + p + ": " + e.getMessage());
-                    }
-                }
-            });
-            threads.add(t);
-            t.start();
-        }
-
-        // Attendre que tous les threads terminent
-        for (Thread t : threads) {
-            t.join();
-        }
-
-        // Fermeture des writers
-        wJ1.close();
-        wJ2.close();
-
-        // Affichage des statistiques finales
-        int totalParties = victoires[0] + victoires[1];
-        double pourcentageNoirs = (double) victoires[0] / totalParties * 100;
-        double pourcentageBlancs = (double) victoires[1] / totalParties * 100;
-        System.out.printf("Les noirs ont gagné %d fois (%.2f%%)\n", victoires[0], pourcentageNoirs);
-        System.out.printf("Les blancs ont gagné %d fois (%.2f%%)\n", victoires[1], pourcentageBlancs);
-
-        System.out.println("Création du fichier csv avec proba ...");
-        // Création du fichier csv avec proba
-        String inputFile = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement\\noirs" + nbrParties + "OMCNN2-OMCNN.csv";
-        String outputFile = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba" + nbrParties + "OMCNN2-OMCNN.csv";
-        CsvAvecProba.createCsvProba(inputFile, outputFile);
-        
-    } catch (IOException | InterruptedException ex) {
-        throw new Error(ex);
-    }
-    return System.currentTimeMillis() - startTime;
-}*/
-    
+    // test avec parallélisation des parties 
     public static long testAvecOthelloV3(int nbrParties, String modelPath1, String modelPath2, 
                                    ModelType typeJ1, ModelType typeJ2) {
-    long startTime = System.currentTimeMillis();
+    long startTime = System.currentTimeMillis();// prend le temps de départ
     try {
         File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement");
-        String modelDesc = String.format("%s-%s", typeJ1.toString(), typeJ2.toString());
-        File fileJ1 = new File(dir, "noirs" + nbrParties + modelDesc + ".csv");
-        File fileJ2 = new File(dir, "blancs" + nbrParties + modelDesc + ".csv");
+        String modelDesc = String.format("%s-%s", typeJ1.toString(), typeJ2.toString()); // permet de concaténer les noms des oracles pour mieux se répérer dans les fichiers
+        File fileJ1 = new File(dir, "noirs" + nbrParties + modelDesc + ".csv"); // création du fichier pour les pions noirs
+        File fileJ2 = new File(dir, "blancs" + nbrParties + modelDesc + ".csv"); // création du fichier pour les pions noirs
         
-        // Création des oracles selon leur type
-        JeuOthello jeu = new JeuOthello();            
+        // création du jeu
+        JeuOthello jeu = new JeuOthello(); 
+        // Création des oracles selon leur type Perceptron ou CNN
         Oracle j1 = createOracle(Joueur.NOIR, modelPath1, typeJ1);
         Oracle j2 = createOracle(Joueur.BLANC, modelPath2, typeJ2);
         
         System.out.println("Modèles chargés avec succès.");
-        System.out.println("Type joueur 1: " + typeJ1);
-        System.out.println("Type joueur 2: " + typeJ2);
         System.out.println("\nDébut des parties...");
 
         // Création des writers avec synchronisation
-        FileWriter wJ1 = new FileWriter(fileJ1);
-        FileWriter wJ2 = new FileWriter(fileJ2);
-        Object writerLock = new Object();
-        int[] victoires = new int[2];
+        FileWriter wJ1 = new FileWriter(fileJ1); // writer pour le joueur noir
+        FileWriter wJ2 = new FileWriter(fileJ2); // writer pour le joueur blanc
+        Object writerLock = new Object(); // locker qui nous permettra par la suite de synchroniser l'écriture dans les fichiers csv
+        int[] victoires = new int[2]; // Tableau compteur de victoire pour les pions noirs et blancs
 
-        int nbrThreads = Runtime.getRuntime().availableProcessors();
-        int partiesParThread = nbrParties / nbrThreads;
+        int nbrThreads = Runtime.getRuntime().availableProcessors(); // permet de connaitre le nombre de processeurs utilisable et donc le nombre de thread
+        int partiesParThread = nbrParties / nbrThreads; // départage le nombre de partie entre les threads de façon équitable
         
-        List<Thread> threads = new ArrayList<>();
+        List<Thread> threads = new ArrayList<>(); // crée une liste de threads
+        
         for (int i = 0; i < nbrThreads; i++) {
             final int threadIndex = i;
             Thread t = new Thread(() -> {
+                // détermine le début et la fin de toutes les parties faites sur les différents threads
                 int debut = threadIndex * partiesParThread;
                 int fin = (threadIndex == nbrThreads - 1) ? nbrParties : debut + partiesParThread;
                 
-                for (int p = debut; p < fin; p++) {
+                // crée les parties 
+                for (int p = debut; p < fin; p++) { 
                     try {
-                        ResumeResultat resj = jeu.partie(j1, ChoixCoup.ORACLE_MEILLEUR,
-                                j2, ChoixCoup.ORACLE_MEILLEUR, false, false, new Random(), false);
+                        ResumeResultat resj = jeu.partie(j1, ChoixCoup.ORACLE_PONDERE,
+                                j2, ChoixCoup.ORACLE_PONDERE, false, false, new Random(), false);
                         
-                        synchronized (victoires) {
+                        synchronized (victoires) { // permet de synchronisé le nombre de victoire des parties faites sur les différents threads
                             if (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) {
                                 victoires[0]++;
                                 System.out.println("Partie " + (p + 1) + ": Les noirs ont gagné");
@@ -353,20 +247,29 @@ public class MAIN {
                                 System.out.println("Partie " + (p + 1) + ": Match nul");
                             }
                         }
-
-                        synchronized (writerLock) {
+                        
+                        synchronized (writerLock) { // permet d'écrire dnas le csv les parties jouées sur les différents threads de manière synchronisée
                             SituationOthello curSit = jeu.situationInitiale();
                             Writer curOut = wJ1;
-                            double curRes = (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) ? 1.0 :
-                                          (resj.getStatutFinal() == StatutSituation.BLANC_GAGNE) ? 0.0 : 0.5;
-                            
+                            double curRes;
+                            if (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) {
+                                curRes = 1.0;
+                            } else if (resj.getStatutFinal() == StatutSituation.BLANC_GAGNE) {
+                                curRes = 0.0;
+                            } else {
+                                curRes = 0.5;
+                            }
                             generateUneLigneCSVOfSituations(curOut, curSit, curRes, 0, 
                                     resj.getCoupsJoues().size(), true, false, false);
                             
                             Joueur curJoueur = Joueur.NOIR;
                             for (CoupOthello curCoup : resj.getCoupsJoues()) {
                                 curSit = jeu.updateSituation(curSit, curJoueur, curCoup);
-                                curOut = (curOut == wJ1) ? wJ2 : wJ1;
+                                if (curOut == wJ1){
+                                    curOut = wJ2;
+                                }else{
+                                    curOut = wJ1;
+                                }
                                 curRes = 1 - curRes;
                                 generateUneLigneCSVOfSituations(curOut, curSit, curRes, 0,
                                         resj.getCoupsJoues().size(), true, false, false);
@@ -378,7 +281,7 @@ public class MAIN {
                     }
                 }
             });
-            threads.add(t);
+            threads.add(t); 
             t.start();
         }
 
@@ -404,7 +307,7 @@ public class MAIN {
     } catch (IOException | InterruptedException ex) {
         throw new Error(ex);
     }
-    return System.currentTimeMillis() - startTime;
+    return System.currentTimeMillis() - startTime; // détermine la fin du temps
 }
    
 
@@ -465,7 +368,7 @@ public class MAIN {
     // Exemple d'utilisation dans le main
     public static void main(String[] args) {
         String modelPathCNN = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn2-model.zip";
-        String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron-model-OMPER-OPPER.zip";
+        String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron-model-OMPER-OPPER10000.zip";
 
         // Test CNN vs Perceptron
         //testAvecOthelloV3(300, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON);

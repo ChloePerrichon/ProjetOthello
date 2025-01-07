@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.List;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 import org.nd4j.linalg.factory.Nd4j;
 
 public class OraclePerceptron implements Oracle{
@@ -23,7 +24,7 @@ public class OraclePerceptron implements Oracle{
     private Joueur evaluePour;
     private MultiLayerNetwork model;
     private boolean afficherPredictions; 
-
+  
     
     public OraclePerceptron(Joueur evaluePour, String modelPath,boolean afficherPredictions) throws IOException {
         // Initialisation de l'oracle avec le joueur pour lequel il évalue
@@ -32,6 +33,9 @@ public class OraclePerceptron implements Oracle{
         this.model = MultiLayerNetwork.load(new File(modelPath), true);
         this.afficherPredictions = afficherPredictions;
     }
+    
+    
+    
 
     @Override
     public double evalSituation(SituationOthello s) {

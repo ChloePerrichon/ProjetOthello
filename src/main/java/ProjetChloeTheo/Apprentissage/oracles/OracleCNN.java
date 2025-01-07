@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.List;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 import org.nd4j.linalg.factory.Nd4j;
 
 /**
@@ -21,6 +22,7 @@ public class OracleCNN implements Oracle {
     private Joueur evaluePour;
     private MultiLayerNetwork model;
     private boolean afficherPredictions;
+   
     
     public OracleCNN(Joueur evaluePour, String modelPath, boolean afficherPredictions) throws IOException {
         this.evaluePour = evaluePour;
