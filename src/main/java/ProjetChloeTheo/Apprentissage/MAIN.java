@@ -314,76 +314,64 @@ public class MAIN {
    
 
     
-        public static void comparePerformance(int nbr, String modelPath, String modelPath1, ModelType type1, ModelType type2) {
-        System.out.println("Début des tests de performance pour " + nbr + " parties");
-        System.out.println("=============================================");
+    public static void comparePerformance(int nbr, String modelPath, String modelPath1, ModelType type1, ModelType type2) {
+    System.out.println("Début des tests de performance pour " + nbr + " parties");
+    System.out.println("=============================================");
 
-        // Test de la version séquentielle
-        System.out.println("\nExécution de la version séquentielle...");
-        System.out.println("Configuration: " + type1 + " vs " + type2);
-        long seqTime = testAvecOthelloV2(nbr, modelPath, modelPath1);
+    // Test de la version séquentielle
+    System.out.println("\nExécution de la version séquentielle...");
+    System.out.println("Configuration: " + type1 + " vs " + type2);
+    long seqTime = testAvecOthelloV2(nbr, modelPath, modelPath1);
 
-        // Petit délai pour laisser le système se reposer
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        // Test de la version parallèle
-        System.out.println("\nExécution de la version parallèle...");
-        System.out.println("Configuration: " + type1 + " vs " + type2);
-        long parTime = testAvecOthelloV3(nbr, modelPath, modelPath1, type1, type2);
-
-        // Affichage des résultats
-        System.out.println("\nRésultats de la comparaison:");
-        System.out.println("=============================================");
-        System.out.printf("Temps d'exécution séquentiel: %.2f secondes%n", seqTime / 1000.0);
-        System.out.printf("Temps d'exécution parallèle: %.2f secondes%n", parTime / 1000.0);
-        System.out.printf("Accélération: %.2fx%n", (double)seqTime / parTime);
-        System.out.printf("Amélioration des performances: %.1f%%%n", 
-            ((double)(seqTime - parTime) / seqTime) * 100);
+    // Petit délai pour laisser le système se reposer
+    try {
+        Thread.sleep(2000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
     }
+
+    // Test de la version parallèle
+    System.out.println("\nExécution de la version parallèle...");
+    System.out.println("Configuration: " + type1 + " vs " + type2);
+    long parTime = testAvecOthelloV3(nbr, modelPath, modelPath1, type1, type2);
+
+    // Affichage des résultats
+    System.out.println("\nRésultats de la comparaison:");
+    System.out.println("=============================================");
+    System.out.printf("Temps d'exécution séquentiel: %.2f secondes%n", seqTime / 1000.0);
+    System.out.printf("Temps d'exécution parallèle: %.2f secondes%n", parTime / 1000.0);
+    System.out.printf("Accélération: %.2fx%n", (double)seqTime / parTime);
+    System.out.printf("Amélioration des performances: %.1f%%%n", 
+        ((double)(seqTime - parTime) / seqTime) * 100);
+}
         
     
-    /*public static void main(String[] args){
-        //testAvecOthello(10000);
-        
-        // Chemin du modèle entraîné pour l'OracleIntelligent
-        String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn2-model.zip";
-        String modelPath1 = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn-model.zip";
-        ///String modelPath1 = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron-model-OMPER-OPPER.zip";
-        
-        
-        //Lancement du test
-        testAvecOthelloV3(300, modelPath,modelPath1);
-        
-         // Nombre de parties pour le test
-        //int nbrParties = 100; // Vous pouvez ajuster ce nombre
-        
-        // Lancer la comparaison
-        //comparePerformance(nbrParties, modelPath, modelPath1);
-    }*/
+  
     
     // Exemple d'utilisation dans le main
     public static void main(String[] args) {
         String modelPathCNN = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn2-model.zip";
-        String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron-model-OMPER-OPPER10000.zip";
+        String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron2-model.zip";
 
         // Test CNN vs Perceptron
-        //testAvecOthelloV3(300, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON);
+        //testAvecOthelloV3(500, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON);
         // Test CNN vs CNN
         //System.out.println("\n=== Test CNN vs CNN ===");
-        //testAvecOthelloV3(100, modelPathCNN, modelPathCNN, ModelType.CNN, ModelType.CNN);
+        //testAvecOthelloV3(500, modelPathCNN, modelPathCNN, ModelType.CNN, ModelType.CNN);
 
-        // Test CNN vs Perceptron avec couleurs inversées
-        //System.out.println("\n=== Test Perceptron (Noir) vs CNN (Blanc) ===");
-        testAvecOthelloV3(100, modelPathPerceptron, modelPathCNN, ModelType.PERCEPTRON, ModelType.CNN);
-        // Ou CNN vs CNN
-        // testAvecOthelloV3(300, modelPathCNN, modelPathCNN, ModelType.CNN, ModelType.CNN);
+        // Test Perceptron vs CNN avec couleurs inversées
+        
+        testAvecOthelloV3(300, modelPathPerceptron, modelPathCNN, ModelType.PERCEPTRON, ModelType.CNN);
+        
 
         // Ou Perceptron vs Perceptron
         // testAvecOthelloV3(300, modelPathPerceptron, modelPathPerceptron, ModelType.PERCEPTRON, ModelType.PERCEPTRON);
+        
+        // Nombre de parties pour le test
+        //int nbrParties = 100; // Vous pouvez ajuster ce nombre
+        
+        // Lancer la comparaison
+        //comparePerformance(nbrParties, modelPathCNN, modelPathPerceptron);
     }
     
     

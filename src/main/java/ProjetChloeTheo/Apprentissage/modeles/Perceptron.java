@@ -44,13 +44,19 @@ public class Perceptron {
     
     public static void main(String[] args) {
         try {
-            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba10000OMPER-OPPER.csv";
-
+            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba8000OMCNN-OPPER.csv";
+            
+            // Paramètres du modèle
+            int seed = 123;
+            double learningRate = 0.001;
+            int numEpochs = 30;
+            int batchSize = 128;
+            
             // Création et préparation du dataset
             DataSet dataset = createDataset(csvFilePath);
             System.out.println("Dataset created with " + dataset.numExamples() + " examples.");
 
-            // Split du dataset avec seed pour reproductibilité
+            // Division du dataset en ensembles d'entrainement et de test
             dataset.shuffle(123);
             int trainSize = (int) (dataset.numExamples() * 0.8);
             SplitTestAndTrain splits = dataset.splitTestAndTrain(trainSize);
@@ -60,104 +66,93 @@ public class Perceptron {
             DataSetIterator trainIterator = new ListDataSetIterator<>(trainData.asList(), 128);
             DataSetIterator testIterator = new ListDataSetIterator<>(testData.asList(), 128);
 
-            // Paramètres du modèle
-            int seed = 123;
-            double learningRate = 0.001;
-            int numEpoque = 30;
+            
 
             // Création et entraînement du modèle
-            model = createModel(seed, learningRate);
-
-            // Permet de suivre la progression 
-            model.setListeners(new ScoreIterationListener(1) {
-                @Override
-                public void iterationDone(Model model, int iteration, int epoch) {
-                    if (iteration % 10 == 0) {
-                        double score = model.score();
-                        System.out.printf("Époque %d, Itération %d: Score = %.4f%n", 
-                            epoch, iteration, score);
-                    }
-                }
-            });
-
-            // Entraînement avec évaluation périodique
+            //model = createModel(seed, learningRate);
+            
+            // Entraînement du modèle
             System.out.println("Starting training...");
-            for (int epoch = 0; epoch < numEpoque; epoch++) {
-                model.fit(trainIterator);
-
-                // Évaluation sur l'ensemble de test à chaque époque
-                RegressionEvaluation eval = new RegressionEvaluation(1);
-                testIterator.reset();
-                while (testIterator.hasNext()) {
-                    DataSet testSet = testIterator.next();
-                    INDArray predictions = model.output(testSet.getFeatures());
-                    eval.eval(testSet.getLabels(), predictions);
-                }
-
-                System.out.printf("\nÉpoque %d terminée:%n", epoch + 1);
-                System.out.printf("MSE: %.4f%n", eval.averageMeanSquaredError());
-                System.out.printf("MAE: %.4f%n", eval.averageMeanAbsoluteError());
-                System.out.printf("RMSE: %.4f%n", Math.sqrt(eval.averageMeanSquaredError()));
-                System.out.printf("Correlation: %.4f%n", eval.pearsonCorrelation(0));
-
-                // Reset des itérateurs pour la prochaine époque
-                trainIterator.reset();
-                testIterator.reset();
-            }
-
+            //trainModel(model, trainIterator, numEpochs);
+           
             // Sauvegarde du modèle
-            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron-model-OMPER-OPPER10000.zip";
-            saveModel(model, modelPath);
-
-            // Évaluation finale du modèle
-            System.out.println("\nÉvaluation finale du modèle:");
+            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron2-model.zip";
+            //saveModel(model, modelPath);
+            
+            // Évaluation du modèle
+            System.out.println("\nÉvaluation du modèle...");
             evaluateModel(modelPath, testIterator);
+                    
 
         } catch (IOException | IllegalArgumentException e) {
             e.printStackTrace();
         }
     }
-
+    
+    //Méthode pour entrainer le modèle
+    private static void trainModel(MultiLayerNetwork model, DataSetIterator trainIterator, int numEpochs) {
+        for (int epoch = 0; epoch < numEpochs; epoch++) {
+            trainIterator.reset();
+            int batchNum = 0;
+            while (trainIterator.hasNext()) {
+                DataSet batch = trainIterator.next();
+                model.fit(batch);
+                if (batchNum % 10 == 0) {
+                    System.out.printf("Epoch %d, Batch %d: Score = %.4f%n", 
+                        epoch + 1, batchNum, model.score());
+                }
+                batchNum++;
+            }
+            System.out.println("Completed epoch " + (epoch + 1));
+        }
+    }
     // Méthode améliorée d'évaluation
     public static void evaluateModel(String modelPath, DataSetIterator testIterator) throws IOException {
-        MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(modelPath);
-        RegressionEvaluation eval = new RegressionEvaluation();
+         MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(new File(modelPath));
+         System.out.println("Modèle chargé depuis: " + modelPath);
 
-        // Variables pour le suivi des prédictions
-        int totalPredictions = 0;
-        int correctPredictions = 0;
-        double threshold = 0.5; // Seuil pour classification binaire
+         RegressionEvaluation eval = new RegressionEvaluation();
+         int totalPredictions = 0;
+         int correctPredictions = 0;
+         double mseSum = 0.0;
+         double threshold = 0.5;
 
-        while (testIterator.hasNext()) {
-            DataSet batch = testIterator.next();
-            INDArray features = batch.getFeatures();
-            INDArray labels = batch.getLabels();
-            INDArray predictions = model.output(features);
+         testIterator.reset();
+         while (testIterator.hasNext()) {
+             DataSet batch = testIterator.next();
+             INDArray features = batch.getFeatures();
+             INDArray labels = batch.getLabels();
 
-            // Évaluation des métriques de régression
-            eval.eval(labels, predictions);
+             INDArray predictions = model.output(features);
+             eval.eval(labels, predictions);
 
-            // Calcul de la précision pour la classification
-            for(int i = 0; i < predictions.length(); i++) {
-                totalPredictions++;
-                double predicted = predictions.getDouble(i);
-                double actual = labels.getDouble(i);
+             for (int i = 0; i < predictions.length(); i++) {
+                 totalPredictions++;
+                 double predicted = predictions.getDouble(i);
+                 double actual = labels.getDouble(i);
 
-                // On considère une prédiction correcte si elle est du bon côté du seuil
-                if((predicted >= threshold && actual >= threshold) ||
-                   (predicted < threshold && actual < threshold)) {
-                    correctPredictions++;
-                }
-            }
-        }
+                 if ((predicted >= threshold && actual >= threshold) ||
+                     (predicted < threshold && actual < threshold)) {
+                     correctPredictions++;
+                 }
 
-        // Affichage des résultats détaillés
-        System.out.println("\nRésultats de l'évaluation:");
-        System.out.println(eval.stats());
-        System.out.printf("Précision de classification: %.2f%% (%d/%d)%n", 
-            (100.0 * correctPredictions / totalPredictions),
-            correctPredictions, totalPredictions);
-    }
+                 mseSum += Math.pow(predicted - actual, 2);
+             }
+         }
+
+         double accuracy = (double) correctPredictions / totalPredictions * 100;
+         double mse = mseSum / totalPredictions;
+         double rmse = Math.sqrt(mse);
+
+         System.out.println("\nRésultats de l'évaluation du modèle Perceptron :");
+         System.out.println("----------------------------------------");
+         System.out.printf("Précision de classification : %.2f%% (%d/%d)%n", 
+                 accuracy, correctPredictions, totalPredictions);
+         System.out.printf("Erreur quadratique moyenne (MSE) : %.4f%n", mse);
+         System.out.printf("RMSE : %.4f%n", rmse);
+         System.out.printf("Coefficient de corrélation : %.4f%n", eval.pearsonCorrelation(0));
+         System.out.printf("MAE : %.4f%n", eval.averageMeanAbsoluteError());
+     }
 
 
 
@@ -274,31 +269,11 @@ public class Perceptron {
         model.save(new File(modelPath));
         System.out.println("Model saved to " + modelPath);
     }
-    
-    /*// Fonction pour charger un modèle enregistré à partir d'un fichier ZIP
-    public static MultiLayerNetwork loadModel(String modelPath) throws IOException {
-        System.out.println("Loading model from: " + modelPath);
-        MultiLayerNetwork loadedModel = MultiLayerNetwork.load(new File(modelPath), true);
-        System.out.println("Model loaded successfully.");
-        return loadedModel;
-    }*/
+
     
    
     
-    /*// Exemple pour utiliser le modèle pour faire une prédiction avec de nouvelles données
-    public static void makePrediction(MultiLayerNetwork model, INDArray newInput) {
-        // Assurez-vous que `newInput` a les bonnes dimensions
-        if (newInput.shape()[1] != 64) {
-            throw new IllegalArgumentException("L'entrée doit avoir 64 colonnes.");
-        }
-
-        // Prédiction avec le modèle
-        INDArray output = model.output(newInput);
-        double prediction = output.getDouble(0);
-
-        // Affichage de la prédiction
-        System.out.printf("Prédiction: %.2f%%\n", prediction * 100);
-    }*/
+   
 
     
 }

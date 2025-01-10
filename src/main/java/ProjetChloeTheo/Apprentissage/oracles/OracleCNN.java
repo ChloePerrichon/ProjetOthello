@@ -45,23 +45,10 @@ public class OracleCNN implements Oracle {
         INDArray output = model.output(input);
         double eval = output.getDouble(0);
         
-        /*// Détail du plateau
-        System.out.println("=== Évaluation détaillée ===");
-        System.out.println("État du plateau :");
-        System.out.println("Plateau :");
-        double[] board = s.getBoardAsArray();
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                System.out.print(board[i * 8 + j] + " ");
-            }
-            System.out.println();
-        }*/
-        //System.out.println("Évaluation brute : " + eval);
-        
         // Ajustement pour le joueur blanc
         if (evaluePour == Joueur.BLANC) {
         eval = 1 - eval;
-        System.out.println("Évaluation ajustée pour Blanc : " + eval);
+        
         }
         
         if (afficherPredictions) {

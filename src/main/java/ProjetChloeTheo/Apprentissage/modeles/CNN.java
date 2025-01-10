@@ -35,6 +35,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import org.deeplearning4j.nn.conf.layers.BatchNormalization;
 import org.nd4j.evaluation.regression.RegressionEvaluation;
 import org.nd4j.linalg.dataset.SplitTestAndTrain;
 
@@ -43,13 +44,13 @@ public class CNN {
     
     public static void main(String[] args) {
         try {
-            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba10000OMPER-OPPER.csv"; // fichier de données csv
+            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba8000OMCNN-OPPER.csv"; // fichier de données csv
             
             // Paramètres du modèle
             int seed = 123; // nombre de reproductibilité
-            double learningRate = 0.001; // taux d'apprentissage
-            int numEpochs = 30; //nombre d'époque
-            int batchSize = 128;  //  taille du batch
+            double learningRate = 0.0001; // taux d'apprentissage
+            int numEpochs = 80; //nombre d'époque
+            int batchSize = 64;  //  taille du batch
             
             // Création du dataset à partir du csv
             DataSet fullDataset = createDataset(csvFilePath);
@@ -70,12 +71,18 @@ public class CNN {
             trainModel(model, trainIterator, numEpochs);
             
             // Sauvegarde du modèle
-            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn2-model.zip";
+            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn3-model.zip";
             saveModel(model, modelPath);
             
             // Évaluation du modèle
             System.out.println("\nÉvaluation du modèle...");
             evaluateModel(modelPath, testIterator);
+            
+            /*//Entrainement d'un modèle déjà entrainé
+            MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(new File(modelPath));
+            System.out.println("Modèle chargé depuis: " + modelPath);
+            System.out.println("Starting training...");
+            trainModel(model, trainIterator, numEpochs);*/
             
         } catch (IOException e) {
             e.printStackTrace(); 
@@ -191,14 +198,13 @@ public class CNN {
         
         //DataSet dataset = new DataSet(input, output);
         
-        double min = input.minNumber().doubleValue();
-        double max = input.maxNumber().doubleValue();
-        input = input.sub(min).div(max - min);
+        
         DataSet dataset = new DataSet(input, output);
-        /*// Normalisation de données
+        dataset.shuffle();
+        // Normalisation de données
         NormalizerStandardize normalizer = new NormalizerStandardize();
         normalizer.fit(dataset);
-        normalizer.transform(dataset);*/
+        normalizer.transform(dataset);
         
         return dataset;
     }
@@ -214,35 +220,45 @@ public class CNN {
             // première couche de convolution
             .layer(new ConvolutionLayer.Builder(3, 3)
                 .nIn(1) // 1 entrée
-                .nOut(64) // 64 filtres
+                .nOut(32) // 32 filtres
                 .stride(1, 1)
                 .activation(Activation.RELU)
                 .build())
+            .layer(new BatchNormalization())
+             // deuxième couche de convolution
+            .layer(new ConvolutionLayer.Builder(3, 3)
+                .nOut(32)
+                .stride(1, 1)
+                .activation(Activation.RELU)
+                .build())
+            .layer(new BatchNormalization())
              //  couche de pooling
             .layer(new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
                 .kernelSize(2, 2)
                 .stride(1, 1)
                 .build())
-             // deuxième couche de convolution
+             // troisieme couche de convolution
+            .layer(new ConvolutionLayer.Builder(2, 2)
+                .nOut(64)
+                .stride(1, 1)
+                .activation(Activation.RELU)
+                .build())
+            .layer(new BatchNormalization())
+             // quatrieme couche de convolution
             .layer(new ConvolutionLayer.Builder(2, 2)
                 .nOut(128)
                 .stride(1, 1)
                 .activation(Activation.RELU)
                 .build())
-             // troisième couche de convolution
-            .layer(new ConvolutionLayer.Builder(2, 2)
-                .nOut(128)
-                .stride(1, 1)
-                .activation(Activation.RELU)
-                .build())
+            .layer(new BatchNormalization())
              // couche dense
             .layer(new DenseLayer.Builder()
-                .nOut(256)
+                .nOut(512)
                 .activation(Activation.RELU)
-                .dropOut(0.5)  // Ajout de dropout pour éviter le surapprentissage
+                .dropOut(0.4)  // Ajout de dropout pour éviter le surapprentissage
                 .build())
             .layer(new DenseLayer.Builder()
-                .nOut(128)
+                .nOut(256)
                 .activation(Activation.RELU)
                 .dropOut(0.3)  // Ajout de dropout pour éviter le surapprentissage
                 .build())
