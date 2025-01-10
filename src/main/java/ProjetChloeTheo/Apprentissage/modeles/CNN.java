@@ -44,24 +44,24 @@ public class CNN {
     
     public static void main(String[] args) {
         try {
-            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba8000OMCNN-OPPER.csv"; // fichier de données csv
+            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba8000OMCNN-OPPER.csv"; // chemin du csv sur lequel on veut entrainer le modèle
             
             // Paramètres du modèle
-            int seed = 123; // nombre de reproductibilité
+            int seed = 123; // graine de reproductibilité
             double learningRate = 0.0001; // taux d'apprentissage
-            int numEpochs = 80; //nombre d'époque
+            int numEpochs = 80; //nombre d'époques : nombre de fois que le modèle voit l'ensemble des données
             int batchSize = 64;  //  taille du batch
             
             // Création du dataset à partir du csv
-            DataSet fullDataset = createDataset(csvFilePath);
+            DataSet fullDataset = createDataset(csvFilePath); // On crée un dataset en INDArray à partir du csv contenant les situations et les probas
             System.out.println("Dataset créé avec " + fullDataset.numExamples() + " exemples.");
             
-            // Division en ensembles d'entraînement et de test
-            DataSet[] splits = splitDataset(fullDataset, 0.8);
+            /// Division du dataset en deux ensembles: un d'entrainement et un de test
+            DataSet[] splits = splitDataset(fullDataset, 0.8); 
             
             // Création des itérateurs de données 
-            DataSetIterator trainIterator = new ListDataSetIterator<>(splits[0].asList(), batchSize); // données pour l'entrainement
-            DataSetIterator testIterator = new ListDataSetIterator<>(splits[1].asList(), batchSize); // données pour les tests
+            DataSetIterator trainIterator = new ListDataSetIterator<>(splits[0].asList(), batchSize); // création d'un itérateur pour parcourir les données d'entrainement par lots de taille batchSize (64)
+            DataSetIterator testIterator = new ListDataSetIterator<>(splits[1].asList(), batchSize); // création d'un itérateur pour parcourir les données de test par lots de taille batchSize (128)
             
             // Création du modèle
             model = createModel(seed, learningRate);
@@ -79,29 +79,30 @@ public class CNN {
             evaluateModel(modelPath, testIterator);
             
             /*//Entrainement d'un modèle déjà entrainé
-            MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(new File(modelPath));
+            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn3-model.zip";
+            MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(new File(modelPath)); // charge le modèle
             System.out.println("Modèle chargé depuis: " + modelPath);
             System.out.println("Starting training...");
-            trainModel(model, trainIterator, numEpochs);*/
+            trainModel(model, trainIterator, numEpochs);*/ // Entraine le modèle
             
         } catch (IOException e) {
-            e.printStackTrace(); 
+            e.printStackTrace(); // gestion des erreurs
         }
     }
     
     // Entraine le modèle avec des lots de données
     private static void trainModel(MultiLayerNetwork model, DataSetIterator trainIterator, int numEpochs) {
-        for (int epoch = 0; epoch < numEpochs; epoch++) {
-            trainIterator.reset(); // remet à zéro pour chaque époque
-            int batchNum = 0;
-            while (trainIterator.hasNext()) {
-                DataSet batch = trainIterator.next(); // charge le batch
-                model.fit(batch); // entraine le modèle sur le batch
-                if (batchNum % 10 == 0) {
+        for (int epoch = 0; epoch < numEpochs; epoch++) { // Effectue l'entrainement sur le nombre d'époques demandées
+            trainIterator.reset(); // Initialise l'itérateur au début des données
+            int batchNum = 0; // Compteur pour voir la progression des lots traités
+            while (trainIterator.hasNext()) { // Traitement des données par lots
+                DataSet batch = trainIterator.next(); // Prends le prochain lot de données
+                model.fit(batch); // Entraine le modèle sur le lot
+                if (batchNum % 10 == 0) { // Boucle qui permet d'afficher la progression de l'entrainement
                     System.out.printf("Epoch %d, Batch %d: Score = %.4f%n", 
                         epoch + 1, batchNum, model.score()); // affiche le score tous les 10 batchs
                 }
-                batchNum++;
+                batchNum++; // indente le compteur
             }
             System.out.println("Completed epoch " + (epoch + 1));
         }
@@ -109,47 +110,50 @@ public class CNN {
     
     // Méthode qui évalue les performances du modèle
     public static void evaluateModel(String modelPath, DataSetIterator testIterator) throws IOException {
-        MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(new File(modelPath));
+        MultiLayerNetwork model = ModelSerializer.restoreMultiLayerNetwork(new File(modelPath)); // Charge le modèle à évaluer
         System.out.println("Modèle chargé depuis: " + modelPath);
 
-        RegressionEvaluation eval = new RegressionEvaluation();
-        int totalPredictions = 0;
-        int correctPredictions = 0;
-        double mseSum = 0.0;
+        RegressionEvaluation eval = new RegressionEvaluation(); // crée "eval" qui servira à évaluer les performances du modèle avec la bibliothèque DL4J
+        int totalPredictions = 0; // création d'un compteur du nombre de prédiction
+        int correctPredictions = 0; // création d'un compteur du nombre de prédiction correcte
+        double mseSum = 0.0; // compteur correspondant à la somme des MSE calculées
         double threshold = 0.5; // seuil de classification
         
-        
-        testIterator.reset();
+        //Boucle d'évaluation
+        testIterator.reset(); // initialise l'itérateur de test au début des données
         while (testIterator.hasNext()) {
-            DataSet batch = testIterator.next();
-            INDArray features = batch.getFeatures();
-            INDArray labels = batch.getLabels();
+            DataSet batch = testIterator.next(); // prend le prochain lot de données
+            INDArray features = batch.getFeatures(); // Données d'entrées que le modèle utilise pour faire les prédictions  
+            INDArray labels = batch.getLabels(); // Valeurs réelles que l'on veut c'est à dire la 65eme valeur du dataset (la probabilité)
             
+            //verifie la forme des données d'entrée et si nécessaire redimmensionne en une matrice 8x8
             if (features.rank() != 4) {
                 features = features.reshape(features.size(0), 1, 8, 8);
             }
             
             INDArray predictions = model.output(features); // prédictions du modèle
-            eval.eval(labels, predictions); // évaluation des prédictions
+            eval.eval(labels, predictions); // évaluation des prédictions avec la bibliothèque DL4J
             
+            // calcule des métriques 
             for (int i = 0; i < predictions.length(); i++) {
-                totalPredictions++;
+                totalPredictions++; // indente le compteur des prédiction
                 double predicted = predictions.getDouble(i);
                 double actual = labels.getDouble(i);
                 
+                //vérifie si la prédiction est correcte selon le seuil 0.5
                 if ((predicted >= threshold && actual >= threshold) ||
                     (predicted < threshold && actual < threshold)) {
-                    correctPredictions++;
+                    correctPredictions++; // indente le compteur des prédictions correctes
                 }
                 
-                mseSum += Math.pow(predicted - actual, 2); // somme des erreurs quadratiques
+                mseSum += Math.pow(predicted - actual, 2); // calcule de l'erreur quadratique et ajoute la valeur à la somme des MSE
             }
         }
         
-        // Calcul et affichage des métriques de performance
-        double accuracy = (double) correctPredictions / totalPredictions * 100;
-        double mse = mseSum / totalPredictions;
-        double rmse = Math.sqrt(mse);
+        
+        double accuracy = (double) correctPredictions / totalPredictions * 100; // Précision du modèle
+        double mse = mseSum / totalPredictions; // Erreur quadratique moyenne
+        double rmse = Math.sqrt(mse); // Racine de l'erreur quadratique moyenne
         
         
         // affiche les résultats
@@ -166,27 +170,30 @@ public class CNN {
     
     // Création du dataset à partir du fichier CSVProba avec des matrices 8x8
     public static DataSet createDataset(String csvFilePath) throws IOException {
-        List<INDArray> inputList = new ArrayList<>();
-        List<INDArray> outputList = new ArrayList<>();
+        List<INDArray> inputList = new ArrayList<>(); // création d'une liste INDArray (DL4J) correspondant aux matrices 8x8 entrées 
+        List<INDArray> outputList = new ArrayList<>(); // Liste INdArray correspondant aux sorties
         
+        //Lecture du fichier Csv ligne par ligne
         try (BufferedReader br = new BufferedReader(new FileReader(csvFilePath))) {
             String line;
             while ((line = br.readLine()) != null) {
-                String[] values = line.split(",");
+                String[] values = line.split(","); // divise la ligne du csv pour récupérer les valeurs séparées par des virgules et donne un tableau de chaine qui contient les valeurs extraites
                 if (values.length != 65) continue; //ignore les lignes qui ont plus de 65 colonnes
                 
                 // Création d'un tableau 8x8 pour l'entrée CNN
-                INDArray input = Nd4j.zeros(1, 1, 8, 8);
-                for (int i = 0; i < 64; i++) {
-                    int row = i / 8;
-                    int col = i % 8;
-                    input.putScalar(new int[]{0, 0, row, col}, Double.parseDouble(values[i]));
+                INDArray input = Nd4j.zeros(1, 1, 8, 8); // initialisation d'un tableau 8x8 rempli de zéros
+                for (int i = 0; i < 64; i++) { //parcours les 64 colonnes de la ligne
+                    // calcule le positionnement de la valeur dans la ligne pour la placer correctement dans la matrice
+                    int row = i / 8; 
+                    int col = i % 8; 
+                    input.putScalar(new int[]{0, 0, row, col}, Double.parseDouble(values[i])); // place les valeurs dans les positions correspondantes de la matrices 8x8
                 }
                 
                 // Sortie qui correspond à la probabilité
-                INDArray output = Nd4j.zeros(1, 1);
+                INDArray output = Nd4j.zeros(1, 1); 
                 output.putScalar(0, Double.parseDouble(values[64]));
                 
+                // Ajoute les entrées et sorties validées à leurs listes respectives
                 inputList.add(input);
                 outputList.add(output);
             }
@@ -196,11 +203,9 @@ public class CNN {
         INDArray input = Nd4j.vstack(inputList); // concaténation des entrées
         INDArray output = Nd4j.vstack(outputList); // concaténation des sorties
         
-        //DataSet dataset = new DataSet(input, output);
-        
-        
+              
         DataSet dataset = new DataSet(input, output);
-        dataset.shuffle();
+        dataset.shuffle(); // mélange les données de manière aléatoire
         // Normalisation de données
         NormalizerStandardize normalizer = new NormalizerStandardize();
         normalizer.fit(dataset);
@@ -218,18 +223,18 @@ public class CNN {
             .updater(new Adam(learningRate)) // ajuste les poids 
             .list()
             // première couche de convolution
-            .layer(new ConvolutionLayer.Builder(3, 3)
-                .nIn(1) // 1 entrée
-                .nOut(32) // 32 filtres
+            .layer(new ConvolutionLayer.Builder(3, 3) //filtre 3x3
+                .nIn(1) // 1 entrée matrice 8x8
+                .nOut(32) // 32 filtres de sortie
                 .stride(1, 1)
-                .activation(Activation.RELU)
+                .activation(Activation.RELU) // utilise la fonction d'activation RELU 
                 .build())
             .layer(new BatchNormalization())
              // deuxième couche de convolution
-            .layer(new ConvolutionLayer.Builder(3, 3)
-                .nOut(32)
+            .layer(new ConvolutionLayer.Builder(3, 3) //filtre 3x3
+                .nOut(32) // 32 filtres de sortie
                 .stride(1, 1)
-                .activation(Activation.RELU)
+                .activation(Activation.RELU) // utilise la fonction d'activation RELU
                 .build())
             .layer(new BatchNormalization())
              //  couche de pooling
@@ -238,28 +243,28 @@ public class CNN {
                 .stride(1, 1)
                 .build())
              // troisieme couche de convolution
-            .layer(new ConvolutionLayer.Builder(2, 2)
-                .nOut(64)
+            .layer(new ConvolutionLayer.Builder(2, 2) //filtre 2x2
+                .nOut(64) // 64 filtres de sortie
                 .stride(1, 1)
-                .activation(Activation.RELU)
+                .activation(Activation.RELU) // utilise la fonction d'activation RELU
                 .build())
             .layer(new BatchNormalization())
              // quatrieme couche de convolution
-            .layer(new ConvolutionLayer.Builder(2, 2)
-                .nOut(128)
+            .layer(new ConvolutionLayer.Builder(2, 2) //filtre 2x2
+                .nOut(128) // 128 filtres de sortie
                 .stride(1, 1)
-                .activation(Activation.RELU)
+                .activation(Activation.RELU) // utilise la fonction d'activation RELU
                 .build())
             .layer(new BatchNormalization())
              // couche dense
             .layer(new DenseLayer.Builder()
-                .nOut(512)
-                .activation(Activation.RELU)
+                .nOut(512) // 512 neurones
+                .activation(Activation.RELU) // utilise la fonction d'activation RELU
                 .dropOut(0.4)  // Ajout de dropout pour éviter le surapprentissage
                 .build())
             .layer(new DenseLayer.Builder()
-                .nOut(256)
-                .activation(Activation.RELU)
+                .nOut(256) //256 neurones
+                .activation(Activation.RELU) // utilise la fonction d'activation RELU
                 .dropOut(0.3)  // Ajout de dropout pour éviter le surapprentissage
                 .build())
                 
@@ -288,10 +293,10 @@ public class CNN {
     // Méthode pour diviser le dataset en ensembles d'entraînement et de test
     public static DataSet[] splitDataset(DataSet fullDataset, double trainRatio) {
         fullDataset.shuffle();
-        int numExamples = fullDataset.numExamples();
-        int trainSize = (int) (numExamples * trainRatio);
+        int numExamples = fullDataset.numExamples(); // Calcule la taille du dataset
+        int trainSize = (int) (numExamples * trainRatio); // Calcule 80% pour l'entrainement si trainRatio = 0.8
         
-        SplitTestAndTrain splitSets = fullDataset.splitTestAndTrain(trainSize);
+        SplitTestAndTrain splitSets = fullDataset.splitTestAndTrain(trainSize); //Divise le dataset en deux parties avec les 80% calculés avant donc 80% entrainement et 20% test
         return new DataSet[]{splitSets.getTrain(), splitSets.getTest()};
     }
     
