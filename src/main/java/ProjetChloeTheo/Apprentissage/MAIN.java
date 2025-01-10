@@ -35,13 +35,13 @@ import org.nd4j.linalg.dataset.DataSet;
  */
 public class MAIN {
     
-    // Ajoutez cette énumération en haut de la classe MAIN pour définir les types de modèles
+    // Définition des types de modèles
     public enum ModelType {
         PERCEPTRON,
         CNN
     }
     
-    // Méthode modifiée pour créer l'oracle approprié selon le type
+    // Création des oracles en fonction du type de modèle CNN ou MLP
     private static Oracle createOracle(Joueur joueur, String modelPath, ModelType modelType) throws IOException {
         switch (modelType) {
             case PERCEPTRON:
@@ -54,7 +54,6 @@ public class MAIN {
     }
     
     //Génère une ligne CSV pour une situation donnée
-    
     private static void generateUneLigneCSVOfSituations(
             Writer curWriter,
             SituationOthello curSit, double res, int numCoup, int totCoup,
@@ -75,7 +74,6 @@ public class MAIN {
     
     
     // Génère le CSV pour les situations de jeu
-    
     public static void generateCSVOfSituations(         
             Writer outJ1, Writer outJ2,
             JeuOthello jeu, Oracle j1, Oracle j2,
@@ -146,11 +144,10 @@ public class MAIN {
         }
     }
     
-    // Test de base avec les oracles stupides
+    // Cette méthode permet de jouer des partie entre les oracles stupides en séquentielle et crée le fichier CSV initial
     public static void testAvecOthello(int nbr) {
         try {
-            File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvSansEntrainement"); //attention je crois que sur l'ordi de chloe c'est temp
-            //File dir = new File("C:\\temp");
+            File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvSansEntrainement"); 
             creationPartie(new File(dir, "noirs" + nbr +".csv"), new File(dir, "blancs"+nbr+".csv"),
                     new JeuOthello(), new OracleStupide(Joueur.NOIR), new OracleStupide(Joueur.BLANC),nbr, true, false, false,new Random());
         } catch (IOException ex){
@@ -158,9 +155,9 @@ public class MAIN {
         }
     }
     
-    //Test avec les oracles intelligents en séquentielle et création des fichiers csv normal et avec proba
+    //Cette méthode permet de jouer un nombre de partie donné avec des oracles intelligents en séquentielle et de créer le fichier csv initial et le fichier csv avec probabilité 
      public static long testAvecOthelloV2(int nbr, String modelPath,String modelPath1) {
-         long startTime = System.currentTimeMillis();
+         long startTime = System.currentTimeMillis(); // Debut de l'éxécution des parties
          try {
            
             File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement");
@@ -179,6 +176,7 @@ public class MAIN {
                     jeu, j1, j2, nbr, true, false, false, new Random());
             
             System.out.println("Création du fichier csv avec proba ...");
+            
             // Création du fichier csv avec proba
             String inputFile = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement\\noirs" + nbr + "OMCNN-OMCNN2.csv";
             String outputFile = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba" + nbr + "OOMCNN-OMCNN2.csv";
@@ -188,12 +186,12 @@ public class MAIN {
         } catch (IOException ex) {
             throw new Error(ex);
         }
-        return System.currentTimeMillis() - startTime;
+        return System.currentTimeMillis() - startTime; // temps mis pour faire le nombre de partie demandée
     }
      
    
     
-    // test avec parallélisation des parties 
+    //Cette méthode permet de jouer un nombre de partie donné avec des oracles intelligents en PARALLELE et de créer le fichier csv initial et le fichier csv avec probabilité 
     public static long testAvecOthelloV3(int nbrParties, String modelPath1, String modelPath2, 
                                    ModelType typeJ1, ModelType typeJ2) {
     long startTime = System.currentTimeMillis();// prend le temps de départ
@@ -228,7 +226,12 @@ public class MAIN {
             Thread t = new Thread(() -> {
                 // détermine le début et la fin de toutes les parties faites sur les différents threads
                 int debut = threadIndex * partiesParThread;
-                int fin = (threadIndex == nbrThreads - 1) ? nbrParties : debut + partiesParThread;
+                int fin;
+                if (threadIndex == nbrThreads - 1) {
+                    fin = nbrParties;  // Si c'est le dernier thread, la valeur de fin est nbrParties
+                } else {
+                    fin = debut + partiesParThread;  // Sinon, fin est égal à debut + partiesParThread
+                }
                 
                 // crée les parties 
                 for (int p = debut; p < fin; p++) { 
@@ -248,7 +251,7 @@ public class MAIN {
                             }
                         }
                         
-                        synchronized (writerLock) { // permet d'écrire dnas le csv les parties jouées sur les différents threads de manière synchronisée
+                        synchronized (writerLock) { // permet d'écrire dans le csv les parties jouées sur les différents threads de manière synchronisée
                             SituationOthello curSit = jeu.situationInitiale();
                             Writer curOut = wJ1;
                             double curRes;
@@ -281,23 +284,25 @@ public class MAIN {
                     }
                 }
             });
-            threads.add(t); 
-            t.start();
+            threads.add(t); // ajoute le thread à la liste de thread 
+            t.start(); // démarre le thread
         }
 
         for (Thread t : threads) {
-            t.join();
+            t.join(); // attends la fin de chaque thread
         }
-
+        // fermeture des writers
         wJ1.close();
         wJ2.close();
-
+        
+        //calcule des résultats des parties en pourcentage 
         int totalParties = victoires[0] + victoires[1];
         double pourcentageNoirs = (double) victoires[0] / totalParties * 100;
         double pourcentageBlancs = (double) victoires[1] / totalParties * 100;
         System.out.printf("Les noirs ont gagné %d fois (%.2f%%)\n", victoires[0], pourcentageNoirs);
         System.out.printf("Les blancs ont gagné %d fois (%.2f%%)\n", victoires[1], pourcentageBlancs);
-
+        
+        //création du fichier csv proba
         System.out.println("Création du fichier csv avec proba ...");
         String inputFile = fileJ1.getPath();
         String outputFile = inputFile.replace("CsvAvecEntrainement", "CsvAvecEntrainementProba")
@@ -313,7 +318,7 @@ public class MAIN {
 
    
 
-    
+    // methode qui permet de comparer la rapidité d'execution des parties entre le séquentielle et le parallèle
     public static void comparePerformance(int nbr, String modelPath, String modelPath1, ModelType type1, ModelType type2) {
     System.out.println("Début des tests de performance pour " + nbr + " parties");
     System.out.println("=============================================");
@@ -323,7 +328,7 @@ public class MAIN {
     System.out.println("Configuration: " + type1 + " vs " + type2);
     long seqTime = testAvecOthelloV2(nbr, modelPath, modelPath1);
 
-    // Petit délai pour laisser le système se reposer
+    // Petit délai 
     try {
         Thread.sleep(2000);
     } catch (InterruptedException e) {

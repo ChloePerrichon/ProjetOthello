@@ -67,15 +67,15 @@ public class Perceptron {
             DataSetIterator testIterator = new ListDataSetIterator<>(testData.asList(), batchSize); // création d'un itérateur pour parcourir les données de test par lots de taille batchSize (128)
 
             // Création et entraînement du modèle
-            model = createModel(seed, learningRate); 
+            //model = createModel(seed, learningRate); 
             
             // Entraînement du modèle
             System.out.println("Starting training...");
-            trainModel(model, trainIterator, numEpochs);
+            //trainModel(model, trainIterator, numEpochs);
            
             // Sauvegarde du modèle
             String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron2-model.zip";
-            saveModel(model, modelPath);
+            //saveModel(model, modelPath);
             
             // Évaluation du modèle
             System.out.println("\nÉvaluation du modèle...");

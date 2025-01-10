@@ -64,15 +64,15 @@ public class CNN {
             DataSetIterator testIterator = new ListDataSetIterator<>(splits[1].asList(), batchSize); // création d'un itérateur pour parcourir les données de test par lots de taille batchSize (128)
             
             // Création du modèle
-            model = createModel(seed, learningRate);
+            //model = createModel(seed, learningRate);
             
             // Entraînement du modèle 
             System.out.println("Starting training...");
-            trainModel(model, trainIterator, numEpochs);
+            //trainModel(model, trainIterator, numEpochs);
             
             // Sauvegarde du modèle
-            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn3-model.zip";
-            saveModel(model, modelPath);
+            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn2-model.zip";
+            //saveModel(model, modelPath);
             
             // Évaluation du modèle
             System.out.println("\nÉvaluation du modèle...");
