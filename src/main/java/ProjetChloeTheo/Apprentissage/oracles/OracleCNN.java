@@ -26,13 +26,13 @@ public class OracleCNN implements Oracle {
     
     public OracleCNN(Joueur evaluePour, String modelPath, boolean afficherPredictions) throws IOException {
         this.evaluePour = evaluePour;
-        this.model = MultiLayerNetwork.load(new File(modelPath), true);
+        this.model = MultiLayerNetwork.load(new File(modelPath), true); // chargement du modèle CNN
         this.afficherPredictions = afficherPredictions;
     }
     
     @Override
     public double evalSituation(SituationOthello s) {
-        // Conversion du plateau en format CNN (1, 1, 8, 8)
+        // Conversion du plateau en format CNN donc matrice 8x8
         double[] features = s.getBoardAsArray();
         INDArray input = Nd4j.zeros(1, 1, 8, 8);
         for (int i = 0; i < 64; i++) {
@@ -51,12 +51,13 @@ public class OracleCNN implements Oracle {
         
         }
         
+        // Affichage de la prédiction
         if (afficherPredictions) {
             System.out.printf("Prédiction CNN pour %s : %.2f%% de chances de gagner%n", 
                 evaluePour, eval * 100);
         }
         
-        return eval;
+        return eval; 
     }
     
     @Override

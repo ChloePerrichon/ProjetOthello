@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.List;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
+
 import org.nd4j.linalg.factory.Nd4j;
 
 public class OraclePerceptron implements Oracle{
@@ -27,10 +27,8 @@ public class OraclePerceptron implements Oracle{
   
     
     public OraclePerceptron(Joueur evaluePour, String modelPath,boolean afficherPredictions) throws IOException {
-        // Initialisation de l'oracle avec le joueur pour lequel il évalue
-        this.evaluePour = evaluePour;
-        // Chargement du modèle de réseau de neurones à partir du fichier
-        this.model = MultiLayerNetwork.load(new File(modelPath), true);
+        this.evaluePour = evaluePour;        
+        this.model = MultiLayerNetwork.load(new File(modelPath), true);// Chargement du modèle perceptron
         this.afficherPredictions = afficherPredictions;
     }
     
@@ -39,19 +37,20 @@ public class OraclePerceptron implements Oracle{
 
     @Override
     public double evalSituation(SituationOthello s) {
-        // Extraction des caractéristiques de la situation de jeu
-        double[] features = s.getBoardAsArray();
-        // Conversion des caractéristiques en INDArray pour l'entrée du modèle
+        
+        double[] features = s.getBoardAsArray(); //récupération des situations
+        //Entrée du modèle en INDArray
         INDArray input = Nd4j.create(features, new int[]{1, features.length});
         // Prédiction de la probabilité de victoire
-        INDArray output = model.output(input);
+        INDArray output = model.output(input); 
         
         double eval =output.getDouble(0);
+        //ajustement pour le joueur blanc 
         if(evaluePour == Joueur.BLANC) {
             eval=1-eval;
         }
         
-        // Afficher la prédiction si activé
+        // Afficher la prédiction 
         if (afficherPredictions){
             System.out.printf("Prédiction pour %s : %.2f%% de chances de gagner%n", evaluePour, eval * 100);
         }
