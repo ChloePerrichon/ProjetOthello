@@ -48,9 +48,9 @@ public class CNN {
             
             // Paramètres du modèle
             int seed = 123; // graine de reproductibilité
-            double learningRate = 0.0005; // taux d'apprentissage
-            int numEpochs = 60; //nombre d'époques : nombre de fois que le modèle voit l'ensemble des données
-            int batchSize = 64;  //  taille du batch
+            double learningRate = 0.001; // taux d'apprentissage
+            int numEpochs = 30; //nombre d'époques : nombre de fois que le modèle voit l'ensemble des données
+            int batchSize = 128;  //  taille du batch
             
             // Création du dataset à partir du csv
             DataSet fullDataset = createDataset(csvFilePath); // On crée un dataset en INDArray à partir du csv contenant les situations et les probas

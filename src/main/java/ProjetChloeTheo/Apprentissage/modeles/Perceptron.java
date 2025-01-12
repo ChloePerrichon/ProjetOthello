@@ -49,7 +49,7 @@ public class Perceptron {
             // Paramètres du modèle
             int seed = 123; //graine de reproductibilité
             double learningRate = 0.001; // taux d'apprentissage 
-            int numEpochs = 40; //nombre d'époques: nombre de fois que le modèle voit l'ensemble des données 
+            int numEpochs = 30; //nombre d'époques: nombre de fois que le modèle voit l'ensemble des données 
             int batchSize=128;
             
             // Création et préparation du dataset
