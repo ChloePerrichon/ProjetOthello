@@ -1,6 +1,7 @@
 package ProjetChloeTheo.Apprentissage.modeles;
 
 
+import ProjetChloeTheo.Apprentissage.database.DataBaseEnvironment;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -77,9 +78,18 @@ public class Perceptron {
             String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron4-model.zip";
             saveModel(model, modelPath);
             
+            // Connection à la base de données
+            DataBaseEnvironment.connect();
+            
+            // Export du modèle vers la base de données
+            DataBaseEnvironment.exporterZIPversDatabase(modelPath, "Model");
+            
             // Évaluation du modèle
             System.out.println("\nÉvaluation du modèle...");
             evaluateModel(modelPath, testIterator);
+            
+            // Fermeture de la connexion
+            DataBaseEnvironment.close();
                     
             
         } catch (IOException | IllegalArgumentException e) {
@@ -272,6 +282,7 @@ public class Perceptron {
     public static void saveModel(MultiLayerNetwork model, String modelPath) throws IOException {
         System.out.println("Saving the model...");
         model.save(new File(modelPath));
+        
         System.out.println("Model saved to " + modelPath);
     }
 

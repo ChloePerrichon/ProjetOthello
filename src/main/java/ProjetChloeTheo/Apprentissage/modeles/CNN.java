@@ -9,6 +9,7 @@ package ProjetChloeTheo.Apprentissage.modeles;
  * @author chloe
  */
 
+import ProjetChloeTheo.Apprentissage.database.DataBaseEnvironment;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.inputs.InputType;
@@ -74,9 +75,18 @@ public class CNN {
             String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn3-model.zip";
             saveModel(model, modelPath);
             
+            // Connection à la base de données
+            DataBaseEnvironment.connect();
+            
+            // Export du modèle vers la base de données
+            DataBaseEnvironment.exporterZIPversDatabase(modelPath, "Model");
+            
             // Évaluation du modèle
             System.out.println("\nÉvaluation du modèle...");
             evaluateModel(modelPath, testIterator);
+            
+            // Fermeture de la connexion
+            DataBaseEnvironment.close();
             
             /*//Entrainement d'un modèle déjà entrainé
             String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn3-model.zip";
