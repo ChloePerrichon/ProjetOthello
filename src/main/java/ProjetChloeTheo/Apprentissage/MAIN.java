@@ -402,6 +402,7 @@ public class MAIN {
     return System.currentTimeMillis() - startTime; // détermine la fin du temps
 }
    
+    //Cette méthode permet de jouer un nombre de partie donné avec des oracles intelligents en PARALLELE et de créer le fichier csv initial et le fichier csv avec probabilité en enregistrant directement les fichiers dans la base de donnée
     public static long testAvecOthelloV3DB(int nbrParties, String modelPath1, String modelPath2, 
                                    ModelType typeJ1, ModelType typeJ2) {
     long startTime = System.currentTimeMillis();
@@ -449,7 +450,7 @@ public class MAIN {
                 for (int p = debut; p < fin; p++) {
                     try {
                         ResumeResultat resj = jeu.partie(j1, ChoixCoup.ORACLE_MEILLEUR,
-                                j2, ChoixCoup.ALEA, false, false, new Random(), false);
+                                j2, ChoixCoup.ORACLE_PONDERE, false, false, new Random(), false);
                         
                         synchronized (victoires) {
                             if (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) {
@@ -582,7 +583,7 @@ public class MAIN {
         String cheminDossierCible = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model";
 
         // Nom du fichier que vous cherchez
-        String nomFichier = "othello-cnn4-model.zip";
+        String nomFichier = "othello-perceptron4-model.zip";
 
         // Requête pour trouver l'ID du fichier par son nom
         String query = "SELECT id FROM Model WHERE nom_fichier = '" + nomFichier + "'";
@@ -602,7 +603,7 @@ public class MAIN {
         
         
         String modelPathCNN = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn4-model.zip";
-        String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron3-model.zip";
+        String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron4-model.zip";
         
         // Test CNN vs Perceptron
         testAvecOthelloV3DB(50, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON);
