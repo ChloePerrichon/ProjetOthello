@@ -44,12 +44,12 @@ public class Perceptron {
     
     public static void main(String[] args) {
         try {
-            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba8000OMCNN-OPPER.csv"; // chemin du csv sur lequel on veut entrainer le modèle
+            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba5000CNN-PERCEPTRON.csv"; // chemin du csv sur lequel on veut entrainer le modèle
             
             // Paramètres du modèle
             int seed = 123; //graine de reproductibilité
             double learningRate = 0.001; // taux d'apprentissage 
-            int numEpochs = 30; //nombre d'époques: nombre de fois que le modèle voit l'ensemble des données 
+            int numEpochs = 40; //nombre d'époques: nombre de fois que le modèle voit l'ensemble des données 
             int batchSize=128;
             
             // Création et préparation du dataset
@@ -67,15 +67,15 @@ public class Perceptron {
             DataSetIterator testIterator = new ListDataSetIterator<>(testData.asList(), batchSize); // création d'un itérateur pour parcourir les données de test par lots de taille batchSize (128)
 
             // Création et entraînement du modèle
-            //model = createModel(seed, learningRate); 
+            model = createModel(seed, learningRate); 
             
             // Entraînement du modèle
             System.out.println("Starting training...");
-            //trainModel(model, trainIterator, numEpochs);
+            trainModel(model, trainIterator, numEpochs);
            
             // Sauvegarde du modèle
-            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron2-model.zip";
-            //saveModel(model, modelPath);
+            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron4-model.zip";
+            saveModel(model, modelPath);
             
             // Évaluation du modèle
             System.out.println("\nÉvaluation du modèle...");
@@ -243,12 +243,12 @@ public class Perceptron {
             .layer(new DenseLayer.Builder()
                 .nIn(64) // Nombre d'entrées (64 cases du plateau Othello)
                 .nOut(256) //256 neuronnes
-                .activation(Activation.RELU)
+                .activation(Activation.LEAKYRELU)
                 .build())
             //Deuxième couche cachée
             .layer(new DenseLayer.Builder()
                 .nOut(256) //256 neuronnes 
-                .activation(Activation.RELU) // utilisation de la focntion d'activation RELU
+                .activation(Activation.LEAKYRELU) // utilisation de la focntion d'activation RELU
                 .build())
             .layer(new OutputLayer.Builder(LossFunctions.LossFunction.MSE) // Utilisation de la MSE pour la régression
                 .nOut(1) // Une seule sortie pour la probabilité de victoire

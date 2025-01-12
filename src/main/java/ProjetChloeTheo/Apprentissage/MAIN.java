@@ -86,7 +86,7 @@ public class MAIN {
         
         for (int i = 0; i < nbrParties; i++) {
             ResumeResultat resj = jeu.partie(j1,ChoixCoup.ORACLE_MEILLEUR,    // LIGNE POUR MODIFIER LES CHOIX COUPS DES ORACLES
-                    j2, ChoixCoup.ORACLE_MEILLEUR, false, false, rand,false);  
+                    j2, ChoixCoup.ALEA, false, false, rand,false);  
             SituationOthello curSit = jeu.situationInitiale();
             Writer curOut = outJ1;
             double curRes;
@@ -165,7 +165,7 @@ public class MAIN {
             // Création des parties et générations du csv normal
             JeuOthello jeu = new JeuOthello();            
             Oracle j1 = new OracleCNN(Joueur.NOIR, modelPath, true);
-            Oracle j2 = new OracleCNN(Joueur.BLANC, modelPath1,true);
+            Oracle j2 = new OraclePerceptron(Joueur.BLANC, modelPath1,true);
             
             System.out.println("Modèles chargés avec succès.");
             System.out.println("\nDébut des parties...");
@@ -236,8 +236,8 @@ public class MAIN {
                 // crée les parties 
                 for (int p = debut; p < fin; p++) { 
                     try {
-                        ResumeResultat resj = jeu.partie(j1, ChoixCoup.ORACLE_PONDERE,
-                                j2, ChoixCoup.ORACLE_PONDERE, false, false, new Random(), false);
+                        ResumeResultat resj = jeu.partie(j1, ChoixCoup.ORACLE_MEILLEUR,
+                                j2, ChoixCoup.ALEA, false, false, new Random(), false);
                         
                         synchronized (victoires) { // permet de synchronisé le nombre de victoire des parties faites sur les différents threads
                             if (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) {
@@ -355,28 +355,28 @@ public class MAIN {
     
     // Exemple d'utilisation dans le main
     public static void main(String[] args) {
-        String modelPathCNN = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn2-model.zip";
-        String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron2-model.zip";
-
+        String modelPathCNN = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn4-model.zip";
+        String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron4-model.zip";
+        
         // Test CNN vs Perceptron
-        //testAvecOthelloV3(500, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON);
+        testAvecOthelloV3(200, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON);
         // Test CNN vs CNN
         //System.out.println("\n=== Test CNN vs CNN ===");
         //testAvecOthelloV3(500, modelPathCNN, modelPathCNN, ModelType.CNN, ModelType.CNN);
 
         // Test Perceptron vs CNN avec couleurs inversées
         
-        testAvecOthelloV3(300, modelPathPerceptron, modelPathCNN, ModelType.PERCEPTRON, ModelType.CNN);
+        //testAvecOthelloV3(200, modelPathPerceptron, modelPathCNN, ModelType.PERCEPTRON, ModelType.CNN);
         
 
         // Ou Perceptron vs Perceptron
-        // testAvecOthelloV3(300, modelPathPerceptron, modelPathPerceptron, ModelType.PERCEPTRON, ModelType.PERCEPTRON);
+        //testAvecOthelloV3(10000, modelPathPerceptron, modelPathPerceptron, ModelType.PERCEPTRON, ModelType.PERCEPTRON);
         
         // Nombre de parties pour le test
         //int nbrParties = 100; // Vous pouvez ajuster ce nombre
         
         // Lancer la comparaison
-        //comparePerformance(nbrParties, modelPathCNN, modelPathPerceptron);
+        //comparePerformance(nbrParties, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON );
     }
     
     

@@ -82,8 +82,8 @@ public class CsvAvecProba {
     }
     
      public static void main(String[] args) {
-        String inputFilename = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement\\noirs10000OMPER-OPPER.csv";
-        String outputFilename = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba10000OMPER-OPPER.csv";
+        String inputFilename = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement\\noirs10000PERCEPTRON-PERCEPTRON.csv";
+        String outputFilename = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba10000PERCEPTRON-PERCEPTRON.csv";
 
         try {
             createCsvProba(inputFilename, outputFilename);

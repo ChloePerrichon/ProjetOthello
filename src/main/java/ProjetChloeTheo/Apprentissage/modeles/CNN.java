@@ -44,12 +44,12 @@ public class CNN {
     
     public static void main(String[] args) {
         try {
-            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba8000OMCNN-OPPER.csv"; // chemin du csv sur lequel on veut entrainer le modèle
+            String csvFilePath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvSansEntrainementProba\\noirsProba5000.csv"; // chemin du csv sur lequel on veut entrainer le modèle
             
             // Paramètres du modèle
             int seed = 123; // graine de reproductibilité
-            double learningRate = 0.0001; // taux d'apprentissage
-            int numEpochs = 80; //nombre d'époques : nombre de fois que le modèle voit l'ensemble des données
+            double learningRate = 0.0005; // taux d'apprentissage
+            int numEpochs = 60; //nombre d'époques : nombre de fois que le modèle voit l'ensemble des données
             int batchSize = 64;  //  taille du batch
             
             // Création du dataset à partir du csv
@@ -64,15 +64,15 @@ public class CNN {
             DataSetIterator testIterator = new ListDataSetIterator<>(splits[1].asList(), batchSize); // création d'un itérateur pour parcourir les données de test par lots de taille batchSize (128)
             
             // Création du modèle
-            //model = createModel(seed, learningRate);
+            model = createModel(seed, learningRate);
             
             // Entraînement du modèle 
             System.out.println("Starting training...");
-            //trainModel(model, trainIterator, numEpochs);
+            trainModel(model, trainIterator, numEpochs);
             
             // Sauvegarde du modèle
-            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn2-model.zip";
-            //saveModel(model, modelPath);
+            String modelPath = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn3-model.zip";
+            saveModel(model, modelPath);
             
             // Évaluation du modèle
             System.out.println("\nÉvaluation du modèle...");
@@ -227,14 +227,14 @@ public class CNN {
                 .nIn(1) // 1 entrée matrice 8x8
                 .nOut(32) // 32 filtres de sortie
                 .stride(1, 1)
-                .activation(Activation.RELU) // utilise la fonction d'activation RELU 
+                .activation(Activation.LEAKYRELU) // utilise la fonction d'activation RELU 
                 .build())
             .layer(new BatchNormalization())
              // deuxième couche de convolution
             .layer(new ConvolutionLayer.Builder(3, 3) //filtre 3x3
                 .nOut(32) // 32 filtres de sortie
                 .stride(1, 1)
-                .activation(Activation.RELU) // utilise la fonction d'activation RELU
+                .activation(Activation.LEAKYRELU) // utilise la fonction d'activation RELU
                 .build())
             .layer(new BatchNormalization())
              //  couche de pooling
@@ -246,25 +246,25 @@ public class CNN {
             .layer(new ConvolutionLayer.Builder(2, 2) //filtre 2x2
                 .nOut(64) // 64 filtres de sortie
                 .stride(1, 1)
-                .activation(Activation.RELU) // utilise la fonction d'activation RELU
+                .activation(Activation.LEAKYRELU) // utilise la fonction d'activation RELU
                 .build())
             .layer(new BatchNormalization())
              // quatrieme couche de convolution
             .layer(new ConvolutionLayer.Builder(2, 2) //filtre 2x2
                 .nOut(128) // 128 filtres de sortie
                 .stride(1, 1)
-                .activation(Activation.RELU) // utilise la fonction d'activation RELU
+                .activation(Activation.LEAKYRELU) // utilise la fonction d'activation RELU
                 .build())
             .layer(new BatchNormalization())
              // couche dense
             .layer(new DenseLayer.Builder()
                 .nOut(512) // 512 neurones
-                .activation(Activation.RELU) // utilise la fonction d'activation RELU
+                .activation(Activation.LEAKYRELU) // utilise la fonction d'activation RELU
                 .dropOut(0.4)  // Ajout de dropout pour éviter le surapprentissage
                 .build())
             .layer(new DenseLayer.Builder()
                 .nOut(256) //256 neurones
-                .activation(Activation.RELU) // utilise la fonction d'activation RELU
+                .activation(Activation.LEAKYRELU) // utilise la fonction d'activation RELU
                 .dropOut(0.3)  // Ajout de dropout pour éviter le surapprentissage
                 .build())
                 
