@@ -151,7 +151,7 @@ public class DataBaseEnvironment {
     }
 
     public static void recupererZIPDepuisDatabase(int id, String cheminDossierCible) {
-    String requete = "SELECT nom_fichier, nom_contenu_du_fichier FROM ressources_zip WHERE id = ?";
+    String requete = "SELECT nom_fichier, nom_contenu_du_fichier FROM Model WHERE id = ?";
     try (PreparedStatement stmt = connection.prepareStatement(requete)) {
         stmt.setInt(1, id);
 

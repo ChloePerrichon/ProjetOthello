@@ -11,6 +11,7 @@ import ProjetChloeTheo.Apprentissage.config_Othello.ChoixCoup;
 import ProjetChloeTheo.Apprentissage.config_Othello.Joueur;
 import ProjetChloeTheo.Apprentissage.config_Othello.StatutSituation;
 import ProjetChloeTheo.Apprentissage.config_Othello.SituationOthello;
+import ProjetChloeTheo.Apprentissage.database.DataBaseEnvironment;
 import ProjetChloeTheo.Apprentissage.oracles.OracleStupide;
 import ProjetChloeTheo.Apprentissage.oracles.Oracle;
 import ProjetChloeTheo.Apprentissage.oracles.OracleCNN;
@@ -155,6 +156,41 @@ public class MAIN {
         }
     }
     
+     // Cette méthode permet de jouer des partie entre les oracles stupides en séquentielle et crée le fichier CSV initial et le stocké dans la base de donnée
+    public static void testAvecOthelloBD(int nbr) {
+        try {
+            // Connexion à la base de données
+            DataBaseEnvironment.connect();
+            
+            // Chemin du dossier pour les fichiers temporaires
+            File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvSansEntrainement");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            
+            // Création des fichiers CSV
+            File fileNoirsCSV = new File(dir, "noirs" + nbr + ".csv");
+            File fileBlancsCSV = new File(dir, "blancs" + nbr + ".csv");
+            
+            // Génération des parties et création des CSV
+            creationPartie(fileNoirsCSV, fileBlancsCSV,
+                    new JeuOthello(), new OracleStupide(Joueur.NOIR), 
+                    new OracleStupide(Joueur.BLANC), nbr, true, false, false, new Random());
+            
+            // Export des fichiers vers la base de données
+            System.out.println("Export des fichiers vers la base de données...");
+            DataBaseEnvironment.exporterCSVversDatabase(fileNoirsCSV.getAbsolutePath(), "CSVsansEntrainement");
+            DataBaseEnvironment.exporterCSVversDatabase(fileBlancsCSV.getAbsolutePath(), "CSVsansEntrainement");
+            
+            // Fermeture de la connexion
+            DataBaseEnvironment.close();
+            
+            System.out.println("Fichiers exportés avec succès dans la base de données");
+        } catch (IOException ex){
+            throw new Error(ex);
+        }
+    }
+    
     //Cette méthode permet de jouer un nombre de partie donné avec des oracles intelligents en séquentielle et de créer le fichier csv initial et le fichier csv avec probabilité 
      public static long testAvecOthelloV2(int nbr, String modelPath,String modelPath1) {
          long startTime = System.currentTimeMillis(); // Debut de l'éxécution des parties
@@ -187,6 +223,57 @@ public class MAIN {
             throw new Error(ex);
         }
         return System.currentTimeMillis() - startTime; // temps mis pour faire le nombre de partie demandée
+    }
+     
+      //Cette méthode permet de jouer un nombre de partie donné avec des oracles intelligents en séquentielle et de créer le fichier csv initial et le fichier csv avec probabilité et de les stocker directement dans la base de donnée
+      public static long testAvecOthelloV2BD(int nbr, String modelPath, String modelPath1) {
+        long startTime = System.currentTimeMillis();
+        try {
+            // Connexion à la base de données
+            DataBaseEnvironment.connect();
+            
+            File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            
+            // Création des fichiers CSV
+            File fileNoirsCSV = new File(dir, "noirs" + nbr + "OMCNN-OMCNN2.csv");
+            File fileBlancsCSV = new File(dir, "blancs" + nbr + "OMCNN-OMCNN2.csv");
+            
+            // Création des parties et générations du csv normal
+            JeuOthello jeu = new JeuOthello();
+            Oracle j1 = new OracleCNN(Joueur.NOIR, modelPath, true);
+            Oracle j2 = new OraclePerceptron(Joueur.BLANC, modelPath1, true);
+            
+            System.out.println("Modèles chargés avec succès.");
+            System.out.println("\nDébut des parties...");
+            
+            //joue les parties
+            creationPartie(fileNoirsCSV, fileBlancsCSV, jeu, j1, j2, nbr, true, false, false, new Random());
+            
+            // Export des fichiers vers la base de données
+            System.out.println("Export des fichiers vers la base de données...");
+            DataBaseEnvironment.exporterCSVversDatabase(fileNoirsCSV.getAbsolutePath(), "CSVavecEntrainement");
+            DataBaseEnvironment.exporterCSVversDatabase(fileBlancsCSV.getAbsolutePath(), "CSVavecEntrainement");
+            
+            System.out.println("Création du fichier csv avec proba ...");
+            
+            // Création et export du fichier avec probabilités
+            String outputFile = "src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainementProba\\noirsProba" + nbr + "OOMCNN-OMCNN2.csv";
+            File fileProba = new File(outputFile);
+            CsvAvecProba.createCsvProba(fileNoirsCSV.getAbsolutePath(), outputFile);
+            
+            // Export du fichier proba vers la base de données
+            DataBaseEnvironment.exporterCSVversDatabase(fileProba.getAbsolutePath(), "CSVavecEntrainementProba");
+            
+            // Fermeture de la connexion
+            DataBaseEnvironment.close();
+            
+        } catch (IOException ex) {
+            throw new Error(ex);
+        }
+        return System.currentTimeMillis() - startTime;
     }
      
    
@@ -315,8 +402,139 @@ public class MAIN {
     return System.currentTimeMillis() - startTime; // détermine la fin du temps
 }
    
+    public static long testAvecOthelloV3DB(int nbrParties, String modelPath1, String modelPath2, 
+                                   ModelType typeJ1, ModelType typeJ2) {
+    long startTime = System.currentTimeMillis();
+    try {
+        // Connexion à la base de données
+        DataBaseEnvironment.connect();
+        
+        // Création des dossiers pour les fichiers temporaires
+        File dir = new File("src\\main\\java\\ProjetChloeTheo\\Ressources\\CsvAvecEntrainement");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        
+        // Nom des fichiers avec type de modèle
+        String modelDesc = String.format("%s-%s", typeJ1.toString(), typeJ2.toString());
+        File fileJ1 = new File(dir, "noirs" + nbrParties + modelDesc + ".csv");
+        File fileJ2 = new File(dir, "blancs" + nbrParties + modelDesc + ".csv");
+        
+        // Création du jeu et des oracles
+        JeuOthello jeu = new JeuOthello();
+        Oracle j1 = createOracle(Joueur.NOIR, modelPath1, typeJ1);
+        Oracle j2 = createOracle(Joueur.BLANC, modelPath2, typeJ2);
+        
+        System.out.println("Modèles chargés avec succès.");
+        System.out.println("\nDébut des parties...");
 
-   
+        // Writers avec synchronisation
+        FileWriter wJ1 = new FileWriter(fileJ1);
+        FileWriter wJ2 = new FileWriter(fileJ2);
+        Object writerLock = new Object();
+        int[] victoires = new int[2];
+
+        // Configuration des threads
+        int nbrThreads = Runtime.getRuntime().availableProcessors();
+        int partiesParThread = nbrParties / nbrThreads;
+        List<Thread> threads = new ArrayList<>();
+        
+        // Création et démarrage des threads
+        for (int i = 0; i < nbrThreads; i++) {
+            final int threadIndex = i;
+            Thread t = new Thread(() -> {
+                int debut = threadIndex * partiesParThread;
+                int fin = (threadIndex == nbrThreads - 1) ? nbrParties : debut + partiesParThread;
+                
+                for (int p = debut; p < fin; p++) {
+                    try {
+                        ResumeResultat resj = jeu.partie(j1, ChoixCoup.ORACLE_MEILLEUR,
+                                j2, ChoixCoup.ALEA, false, false, new Random(), false);
+                        
+                        synchronized (victoires) {
+                            if (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) {
+                                victoires[0]++;
+                                System.out.println("Partie " + (p + 1) + ": Les noirs ont gagné");
+                            } else if (resj.getStatutFinal() == StatutSituation.BLANC_GAGNE) {
+                                victoires[1]++;
+                                System.out.println("Partie " + (p + 1) + ": Les blancs ont gagné");
+                            } else {
+                                System.out.println("Partie " + (p + 1) + ": Match nul");
+                            }
+                        }
+                        
+                        synchronized (writerLock) {
+                            SituationOthello curSit = jeu.situationInitiale();
+                            Writer curOut = wJ1;
+                            double curRes;
+                            if (resj.getStatutFinal() == StatutSituation.NOIR_GAGNE) {
+                                curRes = 1.0;
+                            } else if (resj.getStatutFinal() == StatutSituation.BLANC_GAGNE) {
+                                curRes = 0.0;
+                            } else {
+                                curRes = 0.5;
+                            }
+                            generateUneLigneCSVOfSituations(curOut, curSit, curRes, 0, 
+                                    resj.getCoupsJoues().size(), true, false, false);
+                            
+                            Joueur curJoueur = Joueur.NOIR;
+                            for (CoupOthello curCoup : resj.getCoupsJoues()) {
+                                curSit = jeu.updateSituation(curSit, curJoueur, curCoup);
+                                curOut = (curOut == wJ1) ? wJ2 : wJ1;
+                                curRes = 1 - curRes;
+                                generateUneLigneCSVOfSituations(curOut, curSit, curRes, 0,
+                                        resj.getCoupsJoues().size(), true, false, false);
+                                curJoueur = curJoueur.adversaire();
+                            }
+                        }
+                    } catch (IOException e) {
+                        System.err.println("Erreur lors de l'écriture pour la partie " + p + ": " + e.getMessage());
+                    }
+                }
+            });
+            threads.add(t);
+            t.start();
+        }
+
+        // Attente de la fin des threads
+        for (Thread t : threads) {
+            t.join();
+        }
+        
+        // Fermeture des writers
+        wJ1.close();
+        wJ2.close();
+        
+        // Affichage des résultats
+        int totalParties = victoires[0] + victoires[1];
+        double pourcentageNoirs = (double) victoires[0] / totalParties * 100;
+        double pourcentageBlancs = (double) victoires[1] / totalParties * 100;
+        System.out.printf("Les noirs ont gagné %d fois (%.2f%%)\n", victoires[0], pourcentageNoirs);
+        System.out.printf("Les blancs ont gagné %d fois (%.2f%%)\n", victoires[1], pourcentageBlancs);
+        
+        // Export des fichiers CSV vers la base de données
+        System.out.println("\nExport des fichiers CSV vers la base de données...");
+        DataBaseEnvironment.exporterCSVversDatabase(fileJ1.getAbsolutePath(), "CSVavecEntrainement");
+        DataBaseEnvironment.exporterCSVversDatabase(fileJ2.getAbsolutePath(), "CSVavecEntrainement");
+        
+        // Création et export du fichier avec probabilités
+        System.out.println("Création et export du fichier CSV avec probabilités...");
+        String outputFile = fileJ1.getPath()
+                .replace("CsvAvecEntrainement", "CsvAvecEntrainementProba")
+                .replace("noirs", "noirsProba");
+        CsvAvecProba.createCsvProba(fileJ1.getPath(), outputFile);
+        DataBaseEnvironment.exporterCSVversDatabase(outputFile, "CSVavecEntrainementProba");
+        
+        // Fermeture de la connexion à la base de données
+        DataBaseEnvironment.close();
+        System.out.println("Traitement terminé avec succès.");
+        
+    } catch (IOException | InterruptedException ex) {
+        throw new Error(ex);
+    }
+    return System.currentTimeMillis() - startTime;
+}
+
 
     // methode qui permet de comparer la rapidité d'execution des parties entre le séquentielle et le parallèle
     public static void comparePerformance(int nbr, String modelPath, String modelPath1, ModelType type1, ModelType type2) {
@@ -355,11 +573,39 @@ public class MAIN {
     
     // Exemple d'utilisation dans le main
     public static void main(String[] args) {
+        
+        
+        // Connection à la base de données
+        DataBaseEnvironment.connect();
+
+        // Définir le chemin du dossier de destination
+        String cheminDossierCible = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model";
+
+        // Nom du fichier que vous cherchez
+        String nomFichier = "othello-cnn4-model.zip";
+
+        // Requête pour trouver l'ID du fichier par son nom
+        String query = "SELECT id FROM Model WHERE nom_fichier = '" + nomFichier + "'";
+        List<List<Object>> results = DataBaseEnvironment.executeSelectQuery(query);
+
+        if (!results.isEmpty()) {
+            int id = ((Number) results.get(0).get(0)).intValue();
+            System.out.println("Récupération du fichier: " + nomFichier);
+            DataBaseEnvironment.recupererZIPDepuisDatabase(id, cheminDossierCible);
+            System.out.println("Fichier récupéré avec succès");
+        } else {
+            System.out.println("Fichier non trouvé dans la base de données");
+        }
+
+        // Fermer la connexion
+        DataBaseEnvironment.close();
+        
+        
         String modelPathCNN = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-cnn4-model.zip";
-        String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron4-model.zip";
+        String modelPathPerceptron = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model\\othello-perceptron3-model.zip";
         
         // Test CNN vs Perceptron
-        testAvecOthelloV3(200, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON);
+        testAvecOthelloV3DB(50, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON);
         // Test CNN vs CNN
         //System.out.println("\n=== Test CNN vs CNN ===");
         //testAvecOthelloV3(500, modelPathCNN, modelPathCNN, ModelType.CNN, ModelType.CNN);
@@ -377,6 +623,17 @@ public class MAIN {
         
         // Lancer la comparaison
         //comparePerformance(nbrParties, modelPathCNN, modelPathPerceptron, ModelType.CNN, ModelType.PERCEPTRON );
+        
+        //connection base de donnée
+        //DataBaseEnvironment.connect();
+        
+                 
+       // Définir le chemin du dossier contenant les fichiers CSV
+        //String cheminDossier = "src\\main\\java\\ProjetChloeTheo\\Ressources\\Model";
+        
+        //DataBaseEnvironment.exporterTousLesCSVduDossierVersDB(cheminDossier, "CSVsansEntrainement");
+        //DataBaseEnvironment.exporterTousLesZIPduDossierVersDB(cheminDossier, "Model");
+       // DataBaseEnvironment.close();
     }
     
     
